@@ -2,7 +2,7 @@
 
 # Para CLI
 
-[![NPM version][npm-image]][npm-url] [![Build Status][travis-image]][travis-url]
+[![NPM version][npm-image]][npm-url]
 [![Join the chat at https://gitter.im/Erudika/para](https://badges.gitter.im/Erudika/para.svg)](https://gitter.im/Erudika/para?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## What is this?
@@ -25,10 +25,10 @@ $ npm install -g para-cli
 ```
                                  ________    ____
       ____  ____ __________ _   / ____/ /   /  _/
-     / __ \/ __ `/ ___/ __ `/  / /   / /    / /  
-    / /_/ / /_/ / /  / /_/ /  / /___/ /____/ /   
-   / .___/\__,_/_/   \__,_/   \____/_____/___/   
-  /_/                                            
+     / __ \/ __ `/ ___/ __ `/  / /   / /    / /
+    / /_/ / /_/ / /  / /_/ /  / /___/ /____/ /
+   / .___/\__,_/_/   \__,_/   \____/_____/___/
+  /_/
 
   Command-line tool for Para backend servers
 
@@ -78,7 +78,7 @@ Once configured you can test your connection to the server:
 
 ```
 $ para-cli ping
-``` 
+```
 
 ## Para Docs
 
