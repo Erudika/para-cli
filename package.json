@@ -1,0 +1,66 @@
+{
+  "name": "para-cli",
+  "version": "1.0.0",
+  "description": "Command-line tool for Para backend servers",
+  "homepage": "https://paraio.org",
+  "author": {
+    "name": "Alex Bogdanovski",
+    "email": "alex@erudika.com",
+    "url": "https://erudika.com"
+  },
+  "files": [
+    "para-cli.js",
+    "index.js"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "bin": "para-cli.js",
+  "keywords": [
+    "para",
+    "backend",
+    "cli",
+    "baas",
+    "api"
+  ],
+  "devDependencies": {
+    "eslint": "^3.1.1",
+    "eslint-config-xo-space": "^0.15.0",
+    "gulp": "^3.9.0",
+    "gulp-eslint": "^3.0.1",
+    "gulp-exclude-gitignore": "^1.0.0",
+    "gulp-istanbul": "^1.0.0",
+    "gulp-line-ending-corrector": "^1.0.1",
+    "gulp-mocha": "^3.0.1",
+    "gulp-nsp": "^2.1.0",
+    "gulp-plumber": "^1.0.0",
+    "gulp-xo": "^0.14.0"
+  },
+  "eslintConfig": {
+    "extends": "xo-space",
+    "env": {
+      "mocha": true
+    }
+  },
+  "repository": "Erudika/para-cli",
+  "scripts": {
+    "prepublish": "gulp prepublish",
+    "test": "gulp"
+  },
+  "license": "Apache-2.0",
+  "dependencies": {
+    "chalk": "^1.1.3",
+    "configstore": "^2.1.0",
+    "exit": "^0.1.2",
+    "figlet": "^1.2.0",
+    "get-stdin": "^5.0.1",
+    "globby": "^6.1.0",
+    "jsonwebtoken": "^7.1.9",
+    "meow": "^3.7.0",
+    "mime-types": "^2.1.13",
+    "para-client-js": "^1.21.3",
+    "resolve": "^1.1.7",
+    "striptags": "^2.1.1",
+    "update-notifier": "^1.0.2"
+  }
+}
