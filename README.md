@@ -36,13 +36,15 @@ $ npm install -g para-cli
     $ para-cli [command] [file]
 
   Commands:
-    create <file|glob> [--id] [--type]   Persists files as Para objects and makes them searchable
-    read --id 123 [--id 345 ...]         Fetches objects with the given ids
-    update <file.json|glob> ...          Updates Para objects with the data from a JSON file (must contain id field)
-    delete [glob] --id 123 ...           Deletes one or more objects from Para
-    new-key                              Generates a new secret key and saves it to config.json
-    new-jwt                              Generates a new JWT super token to be used for app authentication
-    ping                                 Tests the connection to the Para API and returns the auth. object
+    create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
+    read --id 123 [--id 345 ...]           Fetches objects with the given ids
+    update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
+    delete [glob] --id 123 ...             Deletes one or more objects from Para
+    search "query" [--limit --page --sort] Searches the Para index for objects given a query string
+    new-key                                Generates a new secret key and saves it to config.json
+    new-jwt                                Generates a new JWT super token to be used for app authentication
+    ping                                   Tests the connection to the Para server
+    me                                     Returns the JSON for the currently authenticated user or app
 
   Options:
     --type          Sets the "type" field of an object
@@ -51,6 +53,10 @@ $ npm install -g para-cli
     --accessKey     Sets the Para access key
     --secretKey     Sets the Para secret key
     --endpoint      Sets the URL of the Para server
+    --sort          Sets the field on which to sort search results
+    --desc          Descending sort for search results (default: true)
+    --page          Page number for search results
+    --limit         Limits the number of search results
     --help          Prints the list of commands
     --version       Prints the version of the program
 
@@ -59,6 +65,7 @@ $ npm install -g para-cli
     $ para-cli read --id my-blog-post.md
     $ para-cli create index.html --type webpage --id "My new article" --sanitize
     $ para-cli delete --id 123 --id "my-blog-post.md"
+    $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
     $ para-cli new-key
 
 ```
@@ -73,6 +80,7 @@ The plan is to add more functionality in the near future.
 The configuration file is located in `~/.config/para-cli-nodejs/config.json` and contains the keys used to authenticate with a Para server.
 The properties `accessKey`, `secretKey` and `endpoint` can be passed as arguments or loaded from the config file.
 Also you can choose to set the environment variables `PARA_ACCESS_KEY`, `PARA_SECRET_KEY` and `PARA_ENDPOINT`.
+The command-line arguments take precedence over environment variables, and if those are missing we read from `config.json`.
 
 Once configured you can test your connection to the server:
 

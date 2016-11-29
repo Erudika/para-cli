@@ -25,9 +25,9 @@ var mime = require('mime-types');
 var globby = require('globby');
 var chalk = require('chalk');
 var ParaClient = require('para-client-js');
+
 var ParaObject = ParaClient.ParaObject;
 var Pager = ParaClient.Pager;
-
 var MAX_FILE_SIZE = 400 * 1024;
 
 exports.createAll = function (pc, input, flags) {
@@ -193,7 +193,6 @@ exports.search = function (pc, input, flags) {
 		fail('Search failed.', err);
 	});
 };
-
 
 function getParaObjects(list, json, id, type) {
 	var objects = (json instanceof Array) ? json : [json];
