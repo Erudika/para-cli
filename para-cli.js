@@ -23,7 +23,7 @@
 
 var updateNotifier = require('update-notifier');
 var ParaClient = require('para-client-js');
-var Configstore = require('configstore');
+var Conf = require('conf');
 var figlet = require('figlet');
 var chalk = require('chalk');
 var meow = require('meow');
@@ -34,13 +34,15 @@ var cli = meow(`
 	  $ para-cli [command] [file]
 
 	Commands:
-	  create <file|glob> [--id] [--type]   Persists files as Para objects and makes them searchable
-	  read --id 123 [--id 345 ...]         Fetches objects with the given ids
-	  update <file.json|glob> ...          Updates Para objects with the data from a JSON file (must contain id field)
-	  delete [glob] --id 123 ...           Deletes one or more objects from Para
-	  new-key                              Generates a new secret key and saves it to config.json
-	  new-jwt                              Generates a new JWT super token to be used for app authentication
-	  ping                                 Tests the connection to the Para API and returns the auth. object
+	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
+	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
+	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
+	  delete [glob] --id 123 ...             Deletes one or more objects from Para
+	  search "query" [--limit --page --sort] Searches the Para index for objects given a query string
+	  new-key                                Generates a new secret key and saves it to config.json
+	  new-jwt                                Generates a new JWT super token to be used for app authentication
+	  ping                                   Tests the connection to the Para server
+	  me                                     Returns the JSON for the currently authenticated user or app
 
 	Options:
 	  --type          Sets the "type" field of an object
@@ -49,6 +51,10 @@ var cli = meow(`
 	  --accessKey     Sets the Para access key
 	  --secretKey     Sets the Para secret key
 	  --endpoint      Sets the URL of the Para server
+	  --sort          Sets the field on which to sort search results
+	  --desc          Descending sort for search results (default: true)
+	  --page          Page number for search results
+	  --limit         Limits the number of search results
 	  --help          Prints the list of commands
 	  --version       Prints the version of the program
 
@@ -57,26 +63,27 @@ var cli = meow(`
 	  $ para-cli read --id my-blog-post.md
 	  $ para-cli create index.html --type webpage --id "My new article" --sanitize
 	  $ para-cli delete --id 123 --id "my-blog-post.md"
+	  $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
 	  $ para-cli new-key
 
 `);
 
 updateNotifier({pkg: cli.pkg}).notify();
 
-var config = new Configstore(cli.pkg.name, {
-	accessKey: cli.flags.accessKey || process.env.PARA_ACCESS_KEY || 'app:app',
-	secretKey: cli.flags.secretKey || process.env.PARA_SECRET_KEY || 'secret',
-	endpoint: cli.flags.endpoint || process.env.PARA_ENDPOINT || 'https://paraio.com'
-});
+var config = new Conf({defaults: {
+	accessKey: 'app:app',
+	secretKey: 'secret',
+	endpoint: 'https://paraio.com'
+}});
 
 var logo = chalk.blue(figlet.textSync(' para CLI', {font: 'Slant'})) + '\n';
 var help = logo + cli.help;
 var input = cli.input;
 var flags = cli.flags;
-
-var pc = new ParaClient(config.get('accessKey'), config.get('secretKey'), {
-	endpoint: config.get('endpoint')
-});
+var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
+var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
+var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
+var pc = new ParaClient(accessKey, secretKey, {endpoint: endpoint});
 
 if (!input[0]) {
 	console.log(help);
@@ -98,6 +105,10 @@ if (input[0] === 'delete') {
 	paraCLI.deleteAll(pc, input, flags);
 }
 
+if (input[0] === 'search') {
+	paraCLI.search(pc, input, flags);
+}
+
 if (input[0] === 'new-key') {
 	paraCLI.newKeys(pc, config);
 }
@@ -108,5 +119,9 @@ if (input[0] === 'new-jwt') {
 
 if (input[0] === 'ping') {
 	paraCLI.ping(pc, config);
+}
+
+if (input[0] === 'me') {
+	paraCLI.me(pc, config);
 }
 

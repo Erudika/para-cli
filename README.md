@@ -70,7 +70,7 @@ The plan is to add more functionality in the near future.
 
 ## Configuration
 
-The configuration file is located in `~/.config/configstore/para-cli.json` and contains the keys used to authenticate with a Para server.
+The configuration file is located in `~/.config/para-cli-nodejs/config.json` and contains the keys used to authenticate with a Para server.
 The properties `accessKey`, `secretKey` and `endpoint` can be passed as arguments or loaded from the config file.
 Also you can choose to set the environment variables `PARA_ACCESS_KEY`, `PARA_SECRET_KEY` and `PARA_ENDPOINT`.
 

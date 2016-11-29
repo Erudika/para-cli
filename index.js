@@ -24,7 +24,9 @@ var jwt = require('jsonwebtoken');
 var mime = require('mime-types');
 var globby = require('globby');
 var chalk = require('chalk');
-var ParaObject = require('para-client-js').ParaObject;
+var ParaClient = require('para-client-js');
+var ParaObject = ParaClient.ParaObject;
+var Pager = ParaClient.Pager;
 
 var MAX_FILE_SIZE = 400 * 1024;
 
@@ -44,10 +46,10 @@ exports.createAll = function (pc, input, flags) {
 		var id = i === 0 ? (flags.id || path.basename(file)) : path.basename(file);
 		var fileType = mime.lookup(file) || 'text/plain';
 		var fileBody = '';
-		var paraObj1;
 
 		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
-			console.error(chalk.red('✖'), 'Invalid file or file too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
+			console.error(chalk.red('✖'), chalk.yellow(path.basename(file)),
+				'is not a file or is too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
 			continue;
 		}
 
@@ -60,18 +62,12 @@ exports.createAll = function (pc, input, flags) {
 			if (flags.sanitize) {
 				fileBody = fileBody.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
 			}
-			paraObj1 = new ParaObject();
-			paraObj1.setFields({id: id, type: type, text: fileBody});
-			createList.push(paraObj1);
+			getParaObjects(createList, {text: fileBody}, id, type);
 		} else if (fileType === 'application/json') {
 			totalSize += stats.size;
-			paraObj1 = new ParaObject();
-			paraObj1.setId(id);
-			paraObj1.setType(type);
-			paraObj1.setFields(JSON.parse(readFile(file)));
-			createList.push(paraObj1);
+			getParaObjects(createList, JSON.parse(readFile(file)), id, type);
 		} else {
-			console.error(chalk.red('✖'), 'Skipping ' + file + ' - isn\'t JSON, HTML nor text.');
+			console.error(chalk.red('✖'), 'Skipping', chalk.yellow(path.basename(file)), '- isn\'t JSON, HTML nor text.');
 		}
 	}
 
@@ -112,16 +108,18 @@ exports.updateAll = function (pc, input) {
 		var stats = fs.statSync(file);
 		var fileType = mime.lookup(file) || 'text/plain';
 
-		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE || fileType !== 'application/json') {
-			console.error(chalk.red('✖'), 'Invalid file or file too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
+		if (fileType !== 'application/json') {
+			console.error(chalk.red('✖'), chalk.yellow(path.basename(file)), 'skipped because it is not a JSON file');
 			continue;
 		}
 
-		var fileBody = JSON.parse(readFile(file));
-		var paraObj2 = new ParaObject();
-		paraObj2.setFields(fileBody);
-		paraObj2.setId(fileBody.id || path.basename(file));
-		updateList.push(paraObj2);
+		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
+			console.error(chalk.red('✖'), chalk.yellow(path.basename(file)),
+				'is not a file or is too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
+			continue;
+		}
+		var fileJSON = JSON.parse(readFile(file));
+		getParaObjects(updateList, fileJSON, fileJSON.id || path.basename(file), null);
 	}
 
 	pc.updateAll(updateList).then(function () {
@@ -178,6 +176,36 @@ exports.ping = function (pc, config) {
 		fail('Connection failed. Check the configuration file', chalk.yellow(config.path));
 	});
 };
+
+exports.me = function (pc, config) {
+	pc.me().then(function (me) {
+		console.log(JSON.stringify(me, null, 2));
+	}).catch(function () {
+		fail('Connection failed. Check the configuration file', chalk.yellow(config.path));
+	});
+};
+
+exports.search = function (pc, input, flags) {
+	var p = new Pager(flags.page, flags.sort, flags.desc, flags.limit);
+	pc.findQuery(null, String(input[1]) || '', p).then(function (resp) {
+		console.log(JSON.stringify(resp, null, 2));
+	}).catch(function (err) {
+		fail('Search failed.', err);
+	});
+};
+
+
+function getParaObjects(list, json, id, type) {
+	var objects = (json instanceof Array) ? json : [json];
+	for (var i = 0; i < objects.length; i++) {
+		var pobj = new ParaObject();
+		pobj.setId(id);
+		pobj.setType(type);
+		pobj.setFields(objects[i]);
+		list.push(pobj);
+	}
+	return objects;
+}
 
 // function writeFile(file, content, msg) {
 // 	fs.writeFileSync(file, content, 'utf8', function (err) {
