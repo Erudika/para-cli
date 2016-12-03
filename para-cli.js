@@ -55,6 +55,7 @@ var cli = meow(`
 	  --desc          Descending sort for search results (default: true)
 	  --page          Page number for search results
 	  --limit         Limits the number of search results
+	  --cwd           Sets the current directory - used for resolving file paths
 	  --help          Prints the list of commands
 	  --version       Prints the version of the program
 
@@ -98,7 +99,7 @@ if (input[0] === 'read') {
 }
 
 if (input[0] === 'update') {
-	paraCLI.updateAll(pc, input);
+	paraCLI.updateAll(pc, input, flags);
 }
 
 if (input[0] === 'delete') {

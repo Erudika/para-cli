@@ -43,13 +43,14 @@ exports.createAll = function (pc, input, flags) {
 		var file = files[i];
 		var stats = fs.statSync(file);
 		var type = flags.type || 'sysprop';
-		var id = i === 0 ? (flags.id || path.basename(file)) : path.basename(file);
+		var defaultId = path.relative(flags.cwd || '.', file);
+		var id = i === 0 ? (flags.id || defaultId) : defaultId;
 		var fileType = mime.lookup(file) || 'text/plain';
 		var fileBody = '';
 
 		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
-			console.error(chalk.red('✖'), chalk.yellow(path.basename(file)),
-				'is not a file or is too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
+			console.error(chalk.red('✖'), chalk.yellow(file),
+				'is not a file or is too big (max. ', (MAX_FILE_SIZE / 1024), 'KB).');
 			continue;
 		}
 
@@ -63,17 +64,19 @@ exports.createAll = function (pc, input, flags) {
 				fileBody = fileBody.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
 			}
 			getParaObjects(createList, {text: fileBody}, id, type);
+			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else if (fileType === 'application/json') {
 			totalSize += stats.size;
 			getParaObjects(createList, JSON.parse(readFile(file)), id, type);
+			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else {
-			console.error(chalk.red('✖'), 'Skipping', chalk.yellow(path.basename(file)), '- isn\'t JSON, HTML nor text.');
+			console.error(chalk.red('✖'), 'Skipping', chalk.yellow(file), '- isn\'t JSON, HTML nor text.');
 		}
 	}
 
 	pc.createAll(createList).then(function () {
-		console.log(chalk.green('✔'), 'Added ' + createList.length + ' files to Para with total size of ' +
-				Math.round(totalSize / 1024) + ' KB.');
+		console.log(chalk.green('✔'), 'Created', createList.length,
+			'objects with total size of', Math.round(totalSize / 1024), 'KB.');
 	}).catch(function (err) {
 		fail('Failed to create documents:', err);
 	});
@@ -95,7 +98,7 @@ exports.readAll = function (pc, flags) {
 	}
 };
 
-exports.updateAll = function (pc, input) {
+exports.updateAll = function (pc, input, flags) {
 	if (!input[1]) {
 		fail('No files specified.');
 	}
@@ -107,23 +110,26 @@ exports.updateAll = function (pc, input) {
 		var file = files[i];
 		var stats = fs.statSync(file);
 		var fileType = mime.lookup(file) || 'text/plain';
+		var defaultId = path.relative(flags.cwd || '.', file);
 
 		if (fileType !== 'application/json') {
-			console.error(chalk.red('✖'), chalk.yellow(path.basename(file)), 'skipped because it is not a JSON file');
+			console.error(chalk.red('✖'), chalk.yellow(file), 'skipped because it is not a JSON file');
 			continue;
 		}
 
 		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
-			console.error(chalk.red('✖'), chalk.yellow(path.basename(file)),
+			console.error(chalk.red('✖'), chalk.yellow(file),
 				'is not a file or is too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
 			continue;
 		}
 		var fileJSON = JSON.parse(readFile(file));
-		getParaObjects(updateList, fileJSON, fileJSON.id || path.basename(file), null);
+		var id = (fileJSON.id || defaultId);
+		getParaObjects(updateList, fileJSON, id, null);
+		console.log(chalk.green('✔'), 'Updating', chalk.yellow(id));
 	}
 
 	pc.updateAll(updateList).then(function () {
-		console.log(chalk.green('✔'), 'Updated ' + updateList.length + ' files.');
+		console.log(chalk.green('✔'), 'Updated', updateList.length, 'files.');
 	}).catch(function (err) {
 		fail('Failed to read object:', err);
 	});
@@ -139,7 +145,7 @@ exports.deleteAll = function (pc, input, flags) {
 			deleteIds[i] = path.basename(String(deleteIds[i]));
 		}
 		pc.deleteAll(deleteIds).then(function () {
-			console.log(chalk.green('✔'), 'Deleted objects "' + deleteIds + '" from Para.');
+			console.log(chalk.green('✔'), 'Deleted objects "', deleteIds, '" from Para.');
 		}).catch(function (err) {
 			fail('Failed to delete objects:', err);
 		});
