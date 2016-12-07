@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
   "author": {

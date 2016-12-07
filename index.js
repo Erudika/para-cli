@@ -42,7 +42,6 @@ exports.createAll = function (pc, input, flags) {
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
 		var stats = fs.statSync(file);
-		var type = flags.type || 'sysprop';
 		var defaultId = path.relative(flags.cwd || '.', file);
 		var id = i === 0 ? (flags.id || defaultId) : defaultId;
 		var fileType = mime.lookup(file) || 'text/plain';
@@ -63,11 +62,11 @@ exports.createAll = function (pc, input, flags) {
 			if (flags.sanitize) {
 				fileBody = fileBody.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
 			}
-			getParaObjects(createList, {text: fileBody}, id, type);
+			getParaObjects(createList, {text: fileBody}, id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else if (fileType === 'application/json') {
 			totalSize += stats.size;
-			getParaObjects(createList, JSON.parse(readFile(file)), id, type);
+			getParaObjects(createList, JSON.parse(readFile(file)), id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else {
 			console.error(chalk.red('✖'), 'Skipping', chalk.yellow(file), '- isn\'t JSON, HTML nor text.');
@@ -124,7 +123,7 @@ exports.updateAll = function (pc, input, flags) {
 		}
 		var fileJSON = JSON.parse(readFile(file));
 		var id = (fileJSON.id || defaultId);
-		getParaObjects(updateList, fileJSON, id, null);
+		getParaObjects(updateList, fileJSON, id, flags);
 		console.log(chalk.green('✔'), 'Updating', chalk.yellow(id));
 	}
 
@@ -200,27 +199,24 @@ exports.search = function (pc, input, flags) {
 	});
 };
 
-function getParaObjects(list, json, id, type) {
+function getParaObjects(list, json, id, flags) {
 	var objects = (json instanceof Array) ? json : [json];
 	for (var i = 0; i < objects.length; i++) {
 		var pobj = new ParaObject();
-		pobj.setId(id);
-		pobj.setType(type);
+		if (flags && flags.type) {
+			pobj.setType(flags.type.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, '-'));
+		}
+		if (flags && flags.encodeId === 'false') {
+			pobj.setId(id);
+		} else {
+			pobj.setId(Buffer.from(id || '').toString('base64'));
+		}
+		pobj.setName(id);
 		pobj.setFields(objects[i]);
 		list.push(pobj);
 	}
 	return objects;
 }
-
-// function writeFile(file, content, msg) {
-// 	fs.writeFileSync(file, content, 'utf8', function (err) {
-// 		if (err) {
-// 			fail('Failed to save file:', err);
-// 		} else {
-// 			console.log(chalk.green('✔'), msg);
-// 		}
-// 	});
-// }
 
 function readFile(filePath) {
 	return fs.readFileSync(filePath, {encoding: 'utf8'});
