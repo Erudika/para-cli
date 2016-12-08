@@ -20,6 +20,7 @@
 var fs = require('fs');
 var path = require('path');
 var striptags = require('striptags');
+var htmlparser = require('htmlparser2');
 var jwt = require('jsonwebtoken');
 var mime = require('mime-types');
 var globby = require('globby');
@@ -56,13 +57,16 @@ exports.createAll = function (pc, input, flags) {
 		if (fileType.match(/text\/.*/)) {
 			totalSize += stats.size;
 			fileBody = readFile(file);
+			var json = {};
 			if (fileType === 'text/html') {
-				fileBody = striptags(fileBody).replace(/[\s]+/gi, ' ');
+				json = parseHTML(fileBody);
+			} else {
+				json = {text: striptags(fileBody).replace(/[\s]+/gi, ' ')};
 			}
 			if (flags.sanitize) {
-				fileBody = fileBody.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
+				json.text = json.text.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
 			}
-			getParaObjects(createList, {text: fileBody}, id, flags);
+			getParaObjects(createList, json, id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else if (fileType === 'application/json') {
 			totalSize += stats.size;
@@ -217,6 +221,40 @@ function getParaObjects(list, json, id, flags) {
 	}
 	return objects;
 }
+
+function parseHTML(file) {
+	var title = null;
+	var url = null;
+	var text = '';
+	var inScript = false;
+	var parser = new htmlparser.Parser({
+		onopentag: function (tag, attribs) {
+			if (tag === 'meta' && attribs.property === 'og:title') {
+				title = attribs.content;
+			}
+			if (tag === 'meta' && attribs.property === 'og:url') {
+				url = attribs.content;
+			}
+			inScript = tag === 'script';
+		},
+		ontext: function (txt) {
+			if (!inScript) {
+				text += txt;
+			}
+		},
+		onclosetag: function (tag) {
+			inScript = false;
+		}
+	}, {decodeEntities: true});
+	parser.write(file);
+	parser.end();
+	return {
+		name: title,
+		url: url,
+		text: text.replace(/[\s]+/gi, ' ')
+	};
+}
+
 
 function readFile(filePath) {
 	return fs.readFileSync(filePath, {encoding: 'utf8'});
