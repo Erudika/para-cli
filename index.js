@@ -46,6 +46,7 @@ exports.createAll = function (pc, input, flags) {
 		var filePath = path.relative(flags.cwd || '.', file);
 		var fileType = mime.lookup(file) || 'text/plain';
 		var fileBody = '';
+		var id;
 
 		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
 			console.error(chalk.red('✖'), chalk.yellow(file),
@@ -65,11 +66,11 @@ exports.createAll = function (pc, input, flags) {
 			if (flags.sanitize) {
 				json.text = json.text.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
 			}
-			var id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
+			id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
 			getParaObjects(createList, json, id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else if (fileType === 'application/json') {
-			var id = (i === 0 && flags.id) ? flags.id : filePath;
+			id = (i === 0 && flags.id) ? flags.id : filePath;
 			totalSize += stats.size;
 			getParaObjects(createList, JSON.parse(readFile(file)), id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
@@ -245,8 +246,9 @@ function parseHTML(file) {
 				text += txt;
 			}
 		},
-		onclosetag: function (tag) {
+		onclosetag: function () {
 			inScript = false;
+			inAnchor = false;
 		}
 	}, {decodeEntities: true});
 	parser.write(file);
@@ -257,7 +259,6 @@ function parseHTML(file) {
 		text: (text || '').replace(/[\s]+/gi, ' ')
 	};
 }
-
 
 function readFile(filePath) {
 	return fs.readFileSync(filePath, {encoding: 'utf8'});

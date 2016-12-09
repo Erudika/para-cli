@@ -58,6 +58,7 @@ $ npm install -g para-cli
     --page          Page number for search results
     --limit         Limits the number of search results
 	  --cwd           Sets the current directory - used for resolving file paths
+		--encodeId      By default all ids are Base64 encoded, unless this is 'false'
     --help          Prints the list of commands
     --version       Prints the version of the program
 
