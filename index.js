@@ -43,8 +43,7 @@ exports.createAll = function (pc, input, flags) {
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
 		var stats = fs.statSync(file);
-		var defaultId = path.relative(flags.cwd || '.', file);
-		var id = i === 0 ? (flags.id || defaultId) : defaultId;
+		var filePath = path.relative(flags.cwd || '.', file);
 		var fileType = mime.lookup(file) || 'text/plain';
 		var fileBody = '';
 
@@ -66,9 +65,11 @@ exports.createAll = function (pc, input, flags) {
 			if (flags.sanitize) {
 				json.text = json.text.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
 			}
+			var id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
 			getParaObjects(createList, json, id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else if (fileType === 'application/json') {
+			var id = (i === 0 && flags.id) ? flags.id : filePath;
 			totalSize += stats.size;
 			getParaObjects(createList, JSON.parse(readFile(file)), id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
@@ -227,6 +228,7 @@ function parseHTML(file) {
 	var url = null;
 	var text = '';
 	var inScript = false;
+	var inAnchor = false;
 	var parser = new htmlparser.Parser({
 		onopentag: function (tag, attribs) {
 			if (tag === 'meta' && attribs.property === 'og:title') {
@@ -236,9 +238,10 @@ function parseHTML(file) {
 				url = attribs.content;
 			}
 			inScript = tag === 'script';
+			inAnchor = (tag === 'a' && attribs.href && !attribs.href.match(/^http/i));
 		},
 		ontext: function (txt) {
-			if (!inScript) {
+			if (!inScript && !inAnchor) {
 				text += txt;
 			}
 		},
@@ -251,7 +254,7 @@ function parseHTML(file) {
 	return {
 		name: title,
 		url: url,
-		text: text.replace(/[\s]+/gi, ' ')
+		text: (text || '').replace(/[\s]+/gi, ' ')
 	};
 }
 
