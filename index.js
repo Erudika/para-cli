@@ -19,6 +19,7 @@
 'use strict';
 var fs = require('fs');
 var path = require('path');
+var http = require('http');
 var striptags = require('striptags');
 var htmlparser = require('htmlparser2');
 var jwt = require('jsonwebtoken');
@@ -178,6 +179,41 @@ exports.newJWT = function (config) {
 	});
 	config.set('jwt', jwt.sign(sClaim, config.get('secretKey'), {algorithm: 'HS256'}));
 	console.log(chalk.green('✔'), 'New JWT generated and saved in', chalk.yellow(config.path));
+};
+
+exports.newApp = function (config, endpoint, input, flags) {
+	if (!input[1]) {
+		fail('App name not specified.');
+	}
+	if (!config.get('jwt')) {
+		this.newJWT(config);
+	}
+	var parts = endpoint.split(':');
+	var host = parts.length > 2 ? parts[1] : parts[0];
+	var appid = input[1];
+	var options = {
+		hostname: host.match('^//') ? host.substring(2) : host,
+		port: parts.length > 2 ? parts[2] : 80,
+		path: '/v1/_setup/' + appid + "?name=" + (flags.name || appid) + "&shared=" + (flags.shared || false),
+		method: 'GET',
+		headers: {
+			'Authorization': 'Bearer ' + config.get('jwt')
+		}
+	};
+	var req = http.request(options, function (res) {
+		if (res.statusCode !== 200) {
+			fail('Failed to create app:', chalk.red(res.statusCode + " " + res.statusMessage));
+		} else {
+			res.on('data', function (data) {
+				console.log(chalk.green('✔'), 'App created.');
+				console.log(`${data}`);
+			});
+		}
+	});
+	req.on('error', function (e) {
+		fail('Failed to create app:', chalk.red(e));
+	});
+	req.end();
 };
 
 exports.ping = function (pc, config) {

@@ -40,6 +40,7 @@ var cli = meow(`
 	  search "query" [--limit --page --sort] Searches the Para index for objects given a query string
 	  new-key                                Generates a new secret key and saves it to config.json
 	  new-jwt                                Generates a new JWT super token to be used for app authentication
+	  new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
 	  ping                                   Tests the connection to the Para server
 	  me                                     Returns the JSON for the currently authenticated user or app
 
@@ -66,6 +67,7 @@ var cli = meow(`
 	  $ para-cli delete --id 123 --id "my-blog-post.md"
 	  $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
 	  $ para-cli new-key
+	  $ para-cli new-app "mynewapp" --name "Full app name"
 
 `);
 
@@ -116,6 +118,10 @@ if (input[0] === 'new-key') {
 
 if (input[0] === 'new-jwt') {
 	paraCLI.newJWT(config);
+}
+
+if (input[0] === 'new-app') {
+	paraCLI.newApp(config, endpoint, input, flags);
 }
 
 if (input[0] === 'ping') {
