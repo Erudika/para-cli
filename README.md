@@ -1,6 +1,6 @@
 ![Logo](https://s3-eu-west-1.amazonaws.com/org.paraio/para.png)
 
-# Para CLI
+# Para Command-Line Interface (CLI)
 
 [![NPM version][npm-image]][npm-url]
 [![Join the chat at https://gitter.im/Erudika/para](https://badges.gitter.im/Erudika/para.svg)](https://gitter.im/Erudika/para?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
@@ -12,7 +12,7 @@ It helps you build applications faster by taking care of the backend. It works o
 objects are stored in a NoSQL data store or any old relational database, then automatically indexed
 by a search engine and finally, cached.
 
-This is the command-line tool for talking to a Para server.
+This is the command-line tool for interacting with a Para server.
 
 ## Installation
 
@@ -43,6 +43,7 @@ $ npm install -g para-cli
     search "query" [--limit --page --sort] Searches the Para index for objects given a query string
     new-key                                Generates a new secret key and saves it to config.json
     new-jwt                                Generates a new JWT super token to be used for app authentication
+    new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
     ping                                   Tests the connection to the Para server
     me                                     Returns the JSON for the currently authenticated user or app
 
@@ -57,8 +58,8 @@ $ npm install -g para-cli
     --desc          Descending sort for search results (default: true)
     --page          Page number for search results
     --limit         Limits the number of search results
-	  --cwd           Sets the current directory - used for resolving file paths
-		--encodeId      By default all ids are Base64 encoded, unless this is 'false'
+    --cwd           Sets the current directory - used for resolving file paths
+    --encodeId      By default all ids are Base64 encoded, unless this is 'false'
     --help          Prints the list of commands
     --version       Prints the version of the program
 
@@ -69,6 +70,7 @@ $ npm install -g para-cli
     $ para-cli delete --id 123 --id "my-blog-post.md"
     $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
     $ para-cli new-key
+    $ para-cli new-app "mynewapp" --name "Full app name"
 
 ```
 
@@ -84,10 +86,24 @@ The properties `accessKey`, `secretKey` and `endpoint` can be passed as argument
 Also you can choose to set the environment variables `PARA_ACCESS_KEY`, `PARA_SECRET_KEY` and `PARA_ENDPOINT`.
 The command-line arguments take precedence over environment variables, and if those are missing we read from `config.json`.
 
+Here's an example `config.json` file:
+```
+{
+  "accessKey": "app:para",
+  "secretKey": "abc231234ufnX85123o1few==",
+  "endpoint": "http://localhost:8080"
+}
+```
+
 Once configured you can test your connection to the server:
 
 ```
 $ para-cli ping
+```
+
+To get the currently authenticated app object run:
+```
+$ para-cli me
 ```
 
 ## Para Docs
