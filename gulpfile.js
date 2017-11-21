@@ -46,5 +46,5 @@ gulp.task('watch', function () {
 	gulp.watch(['*.js', 'test/**'], ['test']);
 });
 
-gulp.task('prepublish', ['nsp']);
+gulp.task('prepare', ['nsp']);
 gulp.task('default', ['static', 'test']);
