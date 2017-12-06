@@ -32,6 +32,9 @@ var ParaClient = require('para-client-js');
 var ParaObject = ParaClient.ParaObject;
 var Pager = ParaClient.Pager;
 var MAX_FILE_SIZE = 400 * 1024;
+var defaultConfig = {accessKey: '',	secretKey: '', endpoint: 'https://paraio.com'};
+
+exports.defaultConfig = defaultConfig;
 
 exports.setup = function (config) {
 	var rl = readline.createInterface({
@@ -45,7 +48,7 @@ exports.setup = function (config) {
 				var access = accessKey || config.get('accessKey');
 				var secret = secretKey || config.get('secretKey');
 				that.newJWT(access, secret, endpoint, config);
-				var pc = new ParaClient(access, secret, {endpoint: endpoint || config.get('endpoint')});
+				var pc = new ParaClient(access, secret, {endpoint: endpoint || defaultConfig.endpoint});
 				that.ping(pc, config);
 				rl.close();
 			});
