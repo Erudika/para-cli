@@ -33,6 +33,7 @@ var cli = meow(`
 	  $ para-cli [command] [file]
 
 	Commands:
+      setup                                  Initial setup, prompts you to enter your Para keys
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
@@ -61,6 +62,7 @@ var cli = meow(`
 	  --version       Prints the version of the program
 
 	Examples:
+      $ para-cli setup
 	  $ para-cli create my-blog-post.md
 	  $ para-cli read --id my-blog-post.md
 	  $ para-cli create index.html --type webpage --id "My new article" --sanitize
@@ -92,6 +94,10 @@ if (!input[0]) {
 	console.log(help);
 }
 
+if (input[0] === 'setup') {
+	paraCLI.setup(config);
+}
+
 if (input[0] === 'create') {
 	paraCLI.createAll(pc, input, flags);
 }
@@ -117,11 +123,11 @@ if (input[0] === 'new-key') {
 }
 
 if (input[0] === 'new-jwt') {
-	paraCLI.newJWT(config);
+	paraCLI.newJWT(accessKey, secretKey, endpoint, config);
 }
 
 if (input[0] === 'new-app') {
-	paraCLI.newApp(config, endpoint, input, flags);
+	paraCLI.newApp(pc, input, flags);
 }
 
 if (input[0] === 'ping') {

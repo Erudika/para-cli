@@ -24,7 +24,7 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^4.11.0",
+    "eslint": "^4.12.1",
     "eslint-config-xo-space": "^0.17.0",
     "gulp": "^3.9.0",
     "gulp-eslint": "^4.0.0",
@@ -44,7 +44,7 @@
   },
   "repository": "Erudika/para-cli",
   "scripts": {
-    "prepublish": "gulp prepublish",
+    "prepare": "gulp prepare",
     "test": "gulp"
   },
   "license": "Apache-2.0",
@@ -57,11 +57,11 @@
     "globby": "^7.1.1",
     "htmlparser2": "^3.9.2",
     "jsonwebtoken": "^8.1.0",
-    "meow": "^3.7.0",
+    "meow": "^4.0.0",
     "mime-types": "^2.1.17",
     "para-client-js": "^1.26.0",
     "resolve": "^1.5.0",
-    "striptags": "^3.1.0",
+    "striptags": "^3.1.1",
     "update-notifier": "^2.3.0"
   }
 }

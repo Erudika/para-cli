@@ -22,6 +22,7 @@ var path = require('path');
 var http = require('http');
 var striptags = require('striptags');
 var htmlparser = require('htmlparser2');
+var readline = require('readline');
 var jwt = require('jsonwebtoken');
 var mime = require('mime-types');
 var globby = require('globby');
@@ -31,6 +32,26 @@ var ParaClient = require('para-client-js');
 var ParaObject = ParaClient.ParaObject;
 var Pager = ParaClient.Pager;
 var MAX_FILE_SIZE = 400 * 1024;
+
+exports.setup = function (config) {
+	var rl = readline.createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+	var that = this;
+	rl.question(chalk.cyan.bold('Para Access Key: '), function(accessKey) {
+		rl.question(chalk.cyan.bold('Para Secret Key: '), function(secretKey) {
+			rl.question(chalk.cyan.bold('Para Endpoint: '), function(endpoint) {
+				var access = accessKey || config.get('accessKey');
+				var secret = secretKey || config.get('secretKey');
+				that.newJWT(access, secret, endpoint, config);
+				var pc = new ParaClient(access, secret, {endpoint: endpoint || config.get('endpoint')});
+				that.ping(pc, config);
+				rl.close();
+			});
+		});
+	});
+};
 
 exports.createAll = function (pc, input, flags) {
 	if (!input[1]) {
@@ -169,58 +190,52 @@ exports.newKeys = function (pc, config) {
 	});
 };
 
-exports.newJWT = function (config) {
+exports.newJWT = function (accessKey, secretKey, endpoint, config) {
+	if (!accessKey || accessKey.length < 3 || !secretKey || secretKey.length < 6) {
+		fail('Invalid credentials.');
+	}
 	var now = Math.round(new Date().getTime() / 1000);
 	var sClaim = JSON.stringify({
 		exp: now + (7 * 24 * 60 * 60),
 		iat: now,
 		nbf: now - 5, // allow for 5 seconds time difference in clocks
-		appid: config.get('accessKey')
+		appid: accessKey
 	});
-	config.set('jwt', jwt.sign(sClaim, config.get('secretKey'), {algorithm: 'HS256'}));
+	config.set('accessKey', accessKey);
+	config.set('secretKey', secretKey);
+	config.set('endpoint', endpoint || config.get('endpoint'));
+	config.set('jwt', jwt.sign(sClaim, secretKey, {algorithm: 'HS256'}));
 	console.log(chalk.green('✔'), 'New JWT generated and saved in', chalk.yellow(config.path));
 };
 
-exports.newApp = function (config, endpoint, input, flags) {
+exports.newApp = function (pc, input, flags) {
 	if (!input[1]) {
 		fail('App name not specified.');
 	}
-	if (!config.get('jwt')) {
-		this.newJWT(config);
-	}
-	var parts = endpoint.split(':');
-	var host = parts.length > 2 ? parts[1] : parts[0];
 	var appid = input[1];
-	var options = {
-		hostname: host.match('^//') ? host.substring(2) : host,
-		port: parts.length > 2 ? parts[2] : 80,
-		path: '/v1/_setup/' + appid + "?name=" + (flags.name || appid) + "&shared=" + (flags.shared || false),
-		method: 'GET',
-		headers: {
-			'Authorization': 'Bearer ' + config.get('jwt')
-		}
-	};
-	var req = http.request(options, function (res) {
-		if (res.statusCode !== 200) {
-			fail('Failed to create app:', chalk.red(res.statusCode + " " + res.statusMessage));
+	var req = pc.invokeGet('_setup/' + appid, {name: (flags.name || appid), shared: (flags.shared || false)});
+	pc.getEntity(req).then(function (resp) {
+		if (resp && resp.secretKey) {
+			console.log(chalk.green('✔'), 'App created:');
+			console.log(JSON.stringify(resp, null, 2));
 		} else {
-			res.on('data', function (data) {
-				console.log(chalk.green('✔'), 'App created.');
-				console.log(`${data}`);
-			});
+			console.log(chalk.green('✔'), chalk.yellow('App "' + appid + '" already exists.'));
 		}
+	}).catch(function (err) {
+		fail('Failed to create app:', err);
 	});
-	req.on('error', function (e) {
-		fail('Failed to create app:', chalk.red(e));
-	});
-	req.end();
 };
 
 exports.ping = function (pc, config) {
 	pc.me().then(function (me) {
-		console.log(chalk.green('✔'), 'Authenticated as:', chalk.cyan(me.type + ' ' + me.name + ' (' + me.id + ')'));
+		pc.getServerVersion().then(function (ver) {
+			console.log(chalk.green('✔'), 'Connected to Para server ' + chalk.cyan.bold('v' + ver) +
+					'. Authenticated as:', chalk.cyan(me.type + ' ' + me.name + ' (' + me.id + ')'));
+		}).catch(function () {
+			fail('Connection failed. Run "para-cli setup" or check the configuration file', chalk.yellow(config.path));
+		});
 	}).catch(function () {
-		fail('Connection failed. Check the configuration file', chalk.yellow(config.path));
+		fail('Connection failed. Run "para-cli setup" or check the configuration file', chalk.yellow(config.path));
 	});
 };
 
@@ -302,5 +317,5 @@ function readFile(filePath) {
 
 function fail(msg, err) {
 	console.error(chalk.red('✖'), msg || 'Forgive me, I have failed you!', err ? chalk.red(err) : '');
-	throw String('✖');
+	process.exit();
 }

@@ -18,6 +18,7 @@ This is the command-line tool for interacting with a Para server.
 
 ```sh
 $ npm install -g para-cli
+$ para-cli setup
 ```
 
 ## Usage
@@ -36,6 +37,7 @@ $ npm install -g para-cli
     $ para-cli [command] [file]
 
   Commands:
+    setup                                  Initial setup, prompts you to enter your Para keys
     create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
     read --id 123 [--id 345 ...]           Fetches objects with the given ids
     update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
@@ -64,6 +66,7 @@ $ npm install -g para-cli
     --version       Prints the version of the program
 
   Examples:
+    $ para-cli setup
     $ para-cli create my-blog-post.md
     $ para-cli read --id my-blog-post.md
     $ para-cli create index.html --type webpage --id "My new article" --sanitize
@@ -81,9 +84,14 @@ The plan is to add more functionality in the near future.
 
 ## Configuration
 
-The configuration file is located in `~/.config/para-cli-nodejs/config.json` and contains the keys used to authenticate with a Para server.
-The properties `accessKey`, `secretKey` and `endpoint` can be passed as arguments or loaded from the config file.
-Also you can choose to set the environment variables `PARA_ACCESS_KEY`, `PARA_SECRET_KEY` and `PARA_ENDPOINT`.
+**Quick start:**
+```
+$ para-cli setup
+```
+
+The configuration file is located in `~/.config/para-cli-nodejs/config.json` and contains the keys used to authenticate
+with a Para server. The properties `accessKey`, `secretKey` and `endpoint` can be passed as arguments or loaded from the
+config file. Also you can choose to set the environment variables `PARA_ACCESS_KEY`, `PARA_SECRET_KEY` and `PARA_ENDPOINT`.
 The command-line arguments take precedence over environment variables, and if those are missing we read from `config.json`.
 
 Here's an example `config.json` file:
@@ -101,7 +109,7 @@ Once configured you can test your connection to the server:
 $ para-cli ping
 ```
 
-To get the currently authenticated app object run:
+To get the currently authenticated app/user object run:
 ```
 $ para-cli me
 ```
