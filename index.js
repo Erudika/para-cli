@@ -27,6 +27,7 @@ var jwt = require('jsonwebtoken');
 var mime = require('mime-types');
 var globby = require('globby');
 var chalk = require('chalk');
+var RSVP = require('rsvp');
 var ParaClient = require('para-client-js');
 
 var ParaObject = ParaClient.ParaObject;
@@ -252,11 +253,42 @@ exports.me = function (pc, config) {
 
 exports.search = function (pc, input, flags) {
 	var p = new Pager(flags.page, flags.sort, flags.desc, flags.limit);
-	pc.findQuery(null, String(input[1]) || '', p).then(function (resp) {
-		console.log(JSON.stringify(resp, null, 2));
-	}).catch(function (err) {
-		fail('Search failed.', err);
-	});
+	if (flags.lastKey) {
+		p.lastKey = flags.lastKey;
+	}
+	if (flags.page && flags.page === "all") {
+		var results = [];
+		p.sortby = "_docid";
+		p.page = 1;
+		function promiseWhile(fn) {
+			return new RSVP.Promise(function (resolve, reject) {
+				function loop() {
+					return RSVP.Promise.resolve(fn()).then(function (result) {
+						if (result && result.length > 0) {
+							results = results.concat(result);
+							return loop();
+						} else {
+							resolve();
+						}
+					});
+				}
+				loop();
+			});
+		}
+		promiseWhile(function () {
+			return pc.findQuery(getType(flags.type), String(input[1]) || '', p);
+		}).then(function () {
+			console.log(JSON.stringify(results, null, 2));
+		}).catch(function (err) {
+			fail('Search failed.', err);
+		});
+	} else {
+		pc.findQuery(getType(flags.type), String(input[1]) || '', p).then(function (resp) {
+			console.log(JSON.stringify(resp, null, 2));
+		}).catch(function (err) {
+			fail('Search failed.', err);
+		});
+	}
 };
 
 function getParaObjects(list, json, id, flags) {
@@ -264,7 +296,7 @@ function getParaObjects(list, json, id, flags) {
 	for (var i = 0; i < objects.length; i++) {
 		var pobj = new ParaObject();
 		if (flags && flags.type) {
-			pobj.setType(flags.type.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, '-'));
+			pobj.setType(getType(flags.type));
 		}
 		if (flags && flags.encodeId === 'false') {
 			pobj.setId(id);
@@ -276,6 +308,13 @@ function getParaObjects(list, json, id, flags) {
 		list.push(pobj);
 	}
 	return objects;
+}
+
+function getType(type) {
+	if (type && type.trim().length > 0) {
+		return type.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, '-');
+	}
+	return null;
 }
 
 function parseHTML(file) {

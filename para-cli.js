@@ -54,20 +54,22 @@ var cli = meow(`
 	  --endpoint      Sets the URL of the Para server
 	  --sort          Sets the field on which to sort search results
 	  --desc          Descending sort for search results (default: true)
-	  --page          Page number for search results
+	  --page          Page number for search results, "all" will auto-paginate through all results
 	  --limit         Limits the number of search results
+	  --lastKey       Sets the last id for search-after pagination
 	  --cwd           Sets the current directory - used for resolving file paths
 	  --encodeId      By default all ids are Base64 encoded, unless this is 'false'
 	  --help          Prints the list of commands
 	  --version       Prints the version of the program
 
 	Examples:
-      $ para-cli setup
+	  $ para-cli setup
 	  $ para-cli create my-blog-post.md
 	  $ para-cli read --id my-blog-post.md
 	  $ para-cli create index.html --type webpage --id "My new article" --sanitize
 	  $ para-cli delete --id 123 --id "my-blog-post.md"
 	  $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
+	  $ para-cli search "*" --type article --page all
 	  $ para-cli new-key
 	  $ para-cli new-app "mynewapp" --name "Full app name"
 
