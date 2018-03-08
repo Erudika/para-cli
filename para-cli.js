@@ -33,7 +33,7 @@ var cli = meow(`
 	  $ para-cli [command] [file]
 
 	Commands:
-      setup                                  Initial setup, prompts you to enter your Para keys
+	  setup                                  Initial setup, prompts you to enter your Para keys
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
