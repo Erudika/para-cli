@@ -358,8 +358,8 @@ function readFile(filePath) {
 }
 
 function fail(msg, err) {
-	var errMsg = err && err.response.body && err.response.body.message ? err.response.body.message : err || '';
-	var code = err && err.response.status ? '(' + err.response.status + ' ' + err.response.res.statusMessage + ')' : '';
+	var errMsg = err && err.response && err.response.body && err.response.body.message ? err.response.body.message : err || '';
+	var code = err && err.response && err.response.status ? '(' + err.response.status + ' ' + err.response.res.statusMessage + ')' : '';
 	console.error(chalk.red('✖'), msg || 'Forgive me, I have failed you!', chalk.red(errMsg), chalk.red(code));
-	process.exit(1);
+	process.exitCode = 1;
 }
