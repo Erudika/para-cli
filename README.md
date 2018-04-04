@@ -43,6 +43,7 @@ $ para-cli setup
     update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
     delete [glob] --id 123 ...             Deletes one or more objects from Para
     search "query" [--limit --page --sort] Searches the Para index for objects given a query string
+    app-settings                           Returns all settings for the authenticated app
     new-key                                Generates a new secret key and saves it to config.json
     new-jwt                                Generates a new JWT super token to be used for app authentication
     new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app

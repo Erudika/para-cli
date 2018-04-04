@@ -291,6 +291,14 @@ exports.search = function (pc, input, flags) {
 	}
 };
 
+exports.appSettings = function (pc, config) {
+	pc.appSettings().then(function (settings) {
+		console.log(JSON.stringify(settings, null, 2));
+	}).catch(function () {
+		fail('Connection failed. Check the configuration file', chalk.yellow(config.path));
+	});
+};
+
 function getParaObjects(list, json, id, flags) {
 	var objects = (json instanceof Array) ? json : [json];
 	for (var i = 0; i < objects.length; i++) {
