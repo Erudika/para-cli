@@ -74,7 +74,13 @@ var cli = meow(`
 	  $ para-cli new-key
 	  $ para-cli new-app "mynewapp" --name "Full app name"
 
-`);
+`, {
+	flags: {
+		id: {
+			type: 'string'
+		}
+	}
+});
 
 updateNotifier({pkg: cli.pkg}).notify();
 

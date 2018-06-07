@@ -19,7 +19,6 @@
 'use strict';
 var fs = require('fs');
 var path = require('path');
-var http = require('http');
 var striptags = require('striptags');
 var htmlparser = require('htmlparser2');
 var readline = require('readline');
@@ -125,7 +124,7 @@ exports.readAll = function (pc, flags) {
 			fail('Failed to read object:', err);
 		});
 	} else {
-		fail('Must specify object id.');
+		fail('Must specify object id(s).');
 	}
 };
 
@@ -233,8 +232,9 @@ exports.newApp = function (pc, input, flags) {
 exports.ping = function (pc, config) {
 	pc.me().then(function (me) {
 		pc.getServerVersion().then(function (ver) {
-			console.log(chalk.green('✔'), 'Connected to Para server ' + chalk.cyan.bold('v' + ver) +
-					'. Authenticated as:', chalk.cyan(me.type + ' ' + me.name + ' (' + me.id + ')'));
+			console.log(chalk.green('✔'), 'Connected to Para server ' + chalk.cyan.bold('v' + ver),
+				'on ' + chalk.cyan(pc.endpoint) + '. Authenticated as:',
+				chalk.cyan(me.type + ' ' + me.name + ' (' + me.id + ')'));
 		}).catch(function () {
 			fail('Connection failed. Run "para-cli setup" or check the configuration file', chalk.yellow(config.path));
 		});
@@ -247,7 +247,7 @@ exports.me = function (pc, config) {
 	pc.me().then(function (me) {
 		console.log(JSON.stringify(me, null, 2));
 	}).catch(function () {
-		fail('Connection failed. Check the configuration file', chalk.yellow(config.path));
+		fail('Connection failed. Server might be down. Check the configuration file', chalk.yellow(config.path));
 	});
 };
 
@@ -306,6 +306,7 @@ function getParaObjects(list, json, id, flags) {
 		if (flags && flags.type) {
 			pobj.setType(getType(flags.type));
 		}
+		id = String(id);
 		if (flags && flags.encodeId === 'false') {
 			pobj.setId(id);
 		} else {
