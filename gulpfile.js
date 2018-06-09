@@ -27,7 +27,7 @@ gulp.task('pre-test', function () {
 			.pipe(istanbul.hookRequire());
 });
 
-gulp.task('test', ['pre-test'], function (cb) {
+gulp.task('test', gulp.series('pre-test', function (cb) {
 	var mochaErr;
 
 	gulp.src('test/**/*.js')
@@ -40,11 +40,11 @@ gulp.task('test', ['pre-test'], function (cb) {
 			.on('end', function () {
 				cb(mochaErr);
 			});
-});
+}));
 
 gulp.task('watch', function () {
 	gulp.watch(['*.js', 'test/**'], ['test']);
 });
 
-gulp.task('prepare', ['nsp']);
-gulp.task('default', ['static', 'test']);
+gulp.task('prepare', gulp.series('nsp'));
+gulp.task('default', gulp.series('static', 'test'));
