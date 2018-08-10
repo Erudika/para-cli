@@ -299,6 +299,14 @@ exports.appSettings = function (pc, config) {
 	});
 };
 
+exports.rebuildIndex = function (pc, config, flags) {
+	pc.rebuildIndex(flags.destinationIndex).then(function (response) {
+		console.log(JSON.stringify(response, null, 2));
+	}).catch(function (err) {
+		fail('Reindex failed.', err);
+	});
+};
+
 function getParaObjects(list, json, id, flags) {
 	var objects = (json instanceof Array) ? json : [json];
 	for (var i = 0; i < objects.length; i++) {
