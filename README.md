@@ -37,12 +37,13 @@ $ para-cli setup
     $ para-cli [command] [file]
 
   Commands:
-    setup                                  Initial setup, prompts you to enter your Para keys
+    setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
     create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
     read --id 123 [--id 345 ...]           Fetches objects with the given ids
     update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
     delete [glob] --id 123 ...             Deletes one or more objects from Para
     search "query" [--limit --page --sort] Searches the Para index for objects given a query string
+    rebuild-index                          Rebuilds the entire search index
     app-settings                           Returns all settings for the authenticated app
     new-key                                Generates a new secret key and saves it to config.json
     new-jwt                                Generates a new JWT super token to be used for app authentication
