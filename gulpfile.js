@@ -5,7 +5,7 @@ var eslint = require('gulp-xo');
 var excludeGitignore = require('gulp-exclude-gitignore');
 var mocha = require('gulp-mocha');
 var istanbul = require('gulp-istanbul');
-var nsp = require('gulp-nsp');
+//var nsp = require('gulp-nsp');
 var plumber = require('gulp-plumber');
 
 gulp.task('static', function () {
@@ -14,9 +14,9 @@ gulp.task('static', function () {
 			.pipe(eslint());
 });
 
-gulp.task('nsp', function (cb) {
-	nsp({package: path.resolve('package.json')}, cb);
-});
+//gulp.task('nsp', function (cb) {
+//	nsp({package: path.resolve('package.json')}, cb);
+//});
 
 gulp.task('pre-test', function () {
 	return gulp.src('*.js')
@@ -46,5 +46,5 @@ gulp.task('watch', function () {
 	gulp.watch(['*.js', 'test/**'], ['test']);
 });
 
-gulp.task('prepare', gulp.series('nsp'));
+//gulp.task('prepare', gulp.series('nsp'));
 gulp.task('default', gulp.series('static', 'test'));
