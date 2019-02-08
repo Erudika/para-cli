@@ -24,8 +24,8 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^5.12.0",
-    "eslint-config-xo-space": "^0.20.0",
+    "eslint": "^5.13.0",
+    "eslint-config-xo-space": "^0.21.0",
     "gulp": "^4.0.0",
     "gulp-eslint": "^5.0.0",
     "gulp-exclude-gitignore": "^1.2.0",
@@ -33,7 +33,7 @@
     "gulp-line-ending-corrector": "^1.0.3",
     "gulp-mocha": "^6.0.0",
     "gulp-plumber": "^1.2.1",
-    "gulp-xo": "^0.20.0"
+    "gulp-xo": "^0.21.0"
   },
   "eslintConfig": {
     "extends": "xo-space",
@@ -49,17 +49,17 @@
   "dependencies": {
     "brace-expansion": "^1.1.11",
     "chalk": "^2.4.2",
-    "conf": "^2.1.0",
+    "conf": "^2.2.0",
     "exit": "^0.1.2",
     "figlet": "^1.2.1",
     "get-stdin": "^6.0.0",
-    "globby": "^8.0.1",
+    "globby": "^9.0.0",
     "htmlparser2": "^3.10.0",
     "jsonwebtoken": "^8.4.0",
     "meow": "^5.0.0",
     "mime-types": "^2.1.21",
-    "para-client-js": "^1.30.1",
-    "resolve": "^1.9.0",
+    "para-client-js": "^1.31.0",
+    "resolve": "^1.10.0",
     "striptags": "^3.1.1",
     "update-notifier": "^2.5.0"
   }
