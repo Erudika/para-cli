@@ -85,7 +85,10 @@ var cli = meow(`
 
 updateNotifier({pkg: cli.pkg}).notify();
 
-var config = new Conf({defaults: paraCLI.defaultConfig});
+var config = new Conf({
+	projectName: 'para-cli',
+	defaults: paraCLI.defaultConfig
+});
 
 var logo = chalk.blue(figlet.textSync(' para CLI', {font: 'Slant'})) + '\n';
 var help = logo + cli.help;
