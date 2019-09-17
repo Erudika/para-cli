@@ -31,7 +31,7 @@ var ParaClient = require('para-client-js');
 
 var ParaObject = ParaClient.ParaObject;
 var Pager = ParaClient.Pager;
-var MAX_FILE_SIZE = 400 * 1024;
+var MAX_FILE_SIZE = 350 * 1024;
 var defaultConfig = {accessKey: '',	secretKey: '', endpoint: 'https://paraio.com'};
 
 exports.defaultConfig = defaultConfig;
@@ -73,9 +73,8 @@ exports.createAll = function (pc, input, flags) {
 		var fileBody = '';
 		var id;
 
-		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
-			console.error(chalk.red('✖'), chalk.yellow(file),
-				'is not a file or is too big (max. ', (MAX_FILE_SIZE / 1024), 'KB).');
+		if (!stats || !stats.isFile()) {
+			console.error(chalk.red('✖'), chalk.yellow(file), 'is not a file.');
 			continue;
 		}
 
@@ -89,11 +88,18 @@ exports.createAll = function (pc, input, flags) {
 				json = {text: striptags(fileBody).replace(/[\s]+/gi, ' ')};
 			}
 			if (flags.sanitize) {
-				json.text = json.text.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, ' ');
+				json.text = json.text.replace(/^[0-9\p{L}\s]+/giu, ' ').replace(/[\s]+/gi, ' ');
 			}
 			id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
-			getParaObjects(createList, json, id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
+			var textEncoded = new TextEncoder().encode(json.text);
+			if (textEncoded.length > MAX_FILE_SIZE) {
+				console.log(chalk.red('!'), chalk.yellow('File is larger than',
+					MAX_FILE_SIZE / 1024, 'KB - splitting into chunks...'));
+				sendFileChunk(1, textEncoded, json, id, flags, 0, MAX_FILE_SIZE, pc);
+			} else {
+				getParaObjects(createList, json, id, flags);
+			}
 		} else if (fileType === 'application/json') {
 			id = (i === 0 && flags.id) ? flags.id : filePath;
 			totalSize += stats.size;
@@ -104,12 +110,14 @@ exports.createAll = function (pc, input, flags) {
 		}
 	}
 
-	pc.createAll(createList).then(function () {
-		console.log(chalk.green('✔'), 'Created', createList.length,
-			'objects with total size of', Math.round(totalSize / 1024), 'KB.');
-	}).catch(function (err) {
-		fail('Failed to create documents:', err);
-	});
+	if (createList.length > 0) {
+		pc.createAll(createList).then(function () {
+			console.log(chalk.green('✔'), 'Created', createList.length,
+				'objects with total size of', Math.round(totalSize / 1024), 'KB.');
+		}).catch(function (err) {
+			fail('Failed to create documents:', err);
+		});
+	}
 };
 
 exports.readAll = function (pc, flags) {
@@ -147,9 +155,8 @@ exports.updateAll = function (pc, input, flags) {
 			continue;
 		}
 
-		if (!stats || !stats.isFile() || stats.size > MAX_FILE_SIZE) {
-			console.error(chalk.red('✖'), chalk.yellow(file),
-				'is not a file or is too big (max. ' + (MAX_FILE_SIZE / 1024) + ' KB).');
+		if (!stats || !stats.isFile()) {
+			console.error(chalk.red('✖'), chalk.yellow(file), 'is not a file.');
 			continue;
 		}
 		var fileJSON = JSON.parse(readFile(file));
@@ -307,29 +314,73 @@ exports.rebuildIndex = function (pc, config, flags) {
 	});
 };
 
+function sendFileChunk(chunkId, textEncoded, json, id, flags, start, end, pc, decoder) {
+	if (start > 0 && textEncoded[start] !== 32) {
+		for (var i = 0; i < 100 && start - i >= 0; i++) {
+			if (textEncoded[start - i] === 32) {
+				start = start - i + 1;
+				break;
+			}
+		}
+	}
+	if (end >= textEncoded.length) {
+		end = textEncoded.length;
+	}
+	if (textEncoded[end] !== 32) {
+		for (var i = 0; i < 100 && end - i >= 0; i++) {
+			if (textEncoded[end - i] === 32) {
+				end = end - i;
+				break;
+			}
+		}
+	}
+	if (typeof decoder === 'undefined') {
+		decoder = new TextDecoder();
+	}
+	var chunk = textEncoded.slice(start, end);
+	var text = decoder.decode(chunk);
+	var obj = getParaObject(Object.assign({}, json, {text: text}), id + "_chunk" + chunkId, flags);
+	if (text && text.trim().length > 0) {
+		obj.chunkid = chunkId;
+		pc.create(obj).then(function () {
+			console.log(chalk.green('✔'), 'Created object chunk', chalk.yellow(chunkId), "with size",
+			Math.round(chunk.length / 1024), 'KB.');
+			if (end < textEncoded.length) {
+				sendFileChunk(++chunkId, textEncoded, json, id, flags, start + MAX_FILE_SIZE, end + MAX_FILE_SIZE, pc, decoder);
+			}
+		}).catch(function (err) {
+			fail('Failed to create chunk:', err);
+		});
+	}
+}
+
 function getParaObjects(list, json, id, flags) {
 	var objects = (json instanceof Array) ? json : [json];
 	for (var i = 0; i < objects.length; i++) {
-		var pobj = new ParaObject();
-		if (flags && flags.type) {
-			pobj.setType(getType(flags.type));
-		}
-		id = String(id);
-		if (flags && flags.encodeId === 'false') {
-			pobj.setId(id);
-		} else {
-			pobj.setId(Buffer.from(id || '').toString('base64'));
-		}
-		pobj.setName(id);
-		pobj.setFields(objects[i]);
-		list.push(pobj);
+		list.push(getParaObject(json, id, flags));
 	}
 	return objects;
 }
 
+function getParaObject(json, id, flags) {
+	var pobj = new ParaObject();
+	if (flags && flags.type) {
+		pobj.setType(getType(flags.type));
+	}
+	id = String(id);
+	if (flags && flags.encodeId === 'false') {
+		pobj.setId(id);
+	} else {
+		pobj.setId(Buffer.from(id || '').toString('base64'));
+	}
+	pobj.setName(id);
+	pobj.setFields(json);
+	return pobj;
+}
+
 function getType(type) {
 	if (type && type.trim().length > 0) {
-		return type.replace(/[^\w\s]/gi, ' ').replace(/[\s]+/gi, '-');
+		return type.replace(/[^\w\s]/giu, ' ').replace(/[\s]+/gi, '-');
 	}
 	return null;
 }
