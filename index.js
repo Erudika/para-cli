@@ -63,7 +63,10 @@ exports.createAll = function (pc, input, flags) {
 
 	var files = globby.sync(input[1], {realpath: true});
 	var totalSize = 0;
-	var createList = [];
+	var totalObjects = 0;
+	var batches = [[]];
+	var batchId = 0;
+	var batchSize = 0;
 
 	for (var i = 0; i < files.length; i++) {
 		var file = files[i];
@@ -79,7 +82,9 @@ exports.createAll = function (pc, input, flags) {
 		}
 
 		if (fileType.match(/text\/.*/)) {
+			totalObjects++;
 			totalSize += stats.size;
+			batchSize += stats.size;
 			fileBody = readFile(file);
 			var json = {};
 			if (fileType === 'text/html') {
@@ -93,31 +98,50 @@ exports.createAll = function (pc, input, flags) {
 			id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 			var textEncoded = new TextEncoder().encode(json.text);
+			//batchSize += textEncoded.length;
 			if (textEncoded.length > MAX_FILE_SIZE) {
 				console.log(chalk.red('!'), chalk.yellow('File is larger than',
 					MAX_FILE_SIZE / 1024, 'KB - splitting into chunks...'));
 				sendFileChunk(1, textEncoded, json, id, flags, 0, MAX_FILE_SIZE, pc);
 			} else {
-				getParaObjects(createList, json, id, flags);
+				if (batchSize > MAX_FILE_SIZE) {
+					batchId++;
+					batches[batchId] = [];
+					console.log(chalk.yellow('*'), 'Batch', chalk.yellow(batchId), 'is', Math.round(batchSize / 1024), 'KB.');
+					batchSize = 0;
+				}
+				addObjectsToBatch(batches[batchId], json, id, flags);
+				console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 			}
 		} else if (fileType === 'application/json') {
+			totalObjects++;
 			id = (i === 0 && flags.id) ? flags.id : filePath;
 			totalSize += stats.size;
-			getParaObjects(createList, JSON.parse(readFile(file)), id, flags);
+			batchSize += stats.size;
+			if (batchSize > MAX_FILE_SIZE) {
+				batchId++;
+				batches[batchId] = [];
+				console.log(chalk.yellow('*'), 'Batch', chalk.yellow(batchId), 'is', Math.round(batchSize / 1024), 'KB.');
+				batchSize = 0;
+			}
+			addObjectsToBatch(batches[batchId], JSON.parse(readFile(file)), id, flags);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
 		} else {
 			console.error(chalk.red('✖'), 'Skipping', chalk.yellow(file), '- isn\'t JSON, HTML nor text.');
 		}
 	}
 
-	if (createList.length > 0) {
-		pc.createAll(createList).then(function () {
-			console.log(chalk.green('✔'), 'Created', createList.length,
-				'objects with total size of', Math.round(totalSize / 1024), 'KB.');
-		}).catch(function (err) {
-			fail('Failed to create documents:', err);
-		});
+	for (var i = 0; i < batches.length; i++) {
+		var objectsList = batches[i];
+		if (objectsList.length > 0) {
+			pc.createAll(objectsList).then(function (data) {
+				console.log(chalk.green('✔'), 'Created', data.length, 'objects.');
+			}).catch(function (err) {
+				fail('Failed to create documents:', err);
+			});
+		}
 	}
+	console.log(chalk.green('✔'), 'Created', totalObjects, 'objects with a total size of', Math.round(totalSize / 1024), 'KB.');
 };
 
 exports.readAll = function (pc, flags) {
@@ -161,7 +185,7 @@ exports.updateAll = function (pc, input, flags) {
 		}
 		var fileJSON = JSON.parse(readFile(file));
 		var id = (fileJSON.id || defaultId);
-		getParaObjects(updateList, fileJSON, id, flags);
+		addObjectsToBatch(updateList, fileJSON, id, flags);
 		console.log(chalk.green('✔'), 'Updating', chalk.yellow(id));
 	}
 
@@ -354,10 +378,10 @@ function sendFileChunk(chunkId, textEncoded, json, id, flags, start, end, pc, de
 	}
 }
 
-function getParaObjects(list, json, id, flags) {
+function addObjectsToBatch(list, json, id, flags) {
 	var objects = (json instanceof Array) ? json : [json];
 	for (var i = 0; i < objects.length; i++) {
-		list.push(getParaObject(json, id, flags));
+		list.push(getParaObject(objects[i], id, flags));
 	}
 	return objects;
 }
