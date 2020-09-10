@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.12.2",
+  "version": "1.12.3",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
   "author": {
@@ -24,8 +24,8 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^6.8.0",
-    "eslint-config-xo-space": "^0.24.0",
+    "eslint": "^7.8.1",
+    "eslint-config-xo-space": "^0.25.0",
     "gulp": "^4.0.2",
     "gulp-eslint": "^6.0.0",
     "gulp-exclude-gitignore": "^1.2.0",
@@ -33,10 +33,11 @@
     "gulp-line-ending-corrector": "^1.0.3",
     "gulp-mocha": "^7.0.2",
     "gulp-plumber": "^1.2.1",
-    "gulp-xo": "^0.24.0",
-    "handlebars": "^4.7.3",
-    "mem": "^6.0.1",
-    "minimist": ">=1.2.2"
+    "gulp-xo": "^0.25.0",
+    "handlebars": "^4.7.6",
+    "mem": "^6.1.1",
+    "minimist": ">=1.2.2",
+    "yargs-parser": ">=13.1.2"
   },
   "eslintConfig": {
     "extends": "xo-space",
@@ -51,19 +52,20 @@
   "license": "Apache-2.0",
   "dependencies": {
     "brace-expansion": "^1.1.11",
-    "chalk": "^3.0.0",
-    "conf": "^6.2.1",
+    "chalk": "^4.1.0",
+    "conf": "^7.1.2",
     "exit": "^0.1.2",
-    "figlet": "^1.3.0",
-    "get-stdin": "^7.0.0",
-    "globby": "^11.0.0",
+    "figlet": "^1.5.0",
+    "get-stdin": "^8.0.0",
+    "globby": "^11.0.1",
     "htmlparser2": "^4.1.0",
     "jsonwebtoken": "^8.5.1",
-    "meow": "^6.0.1",
-    "mime-types": "^2.1.26",
-    "para-client-js": "^1.33.2",
-    "resolve": "^1.15.1",
+    "meow": "^7.1.1",
+    "mime-types": "^2.1.27",
+    "para-client-js": "^1.34.0",
+    "resolve": "^1.17.0",
     "striptags": "^3.1.1",
-    "update-notifier": "^4.1.0"
+    "update-notifier": "^4.1.1",
+    "yargs-parser": ">=13.1.2"
   }
 }
