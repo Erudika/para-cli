@@ -24,7 +24,7 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^7.8.1",
+    "eslint": "^7.10.0",
     "eslint-config-xo-space": "^0.25.0",
     "gulp": "^4.0.2",
     "gulp-eslint": "^6.0.0",
@@ -37,7 +37,7 @@
     "handlebars": "^4.7.6",
     "mem": "^6.1.1",
     "minimist": ">=1.2.2",
-    "yargs-parser": ">=13.1.2"
+    "yargs-parser": ">=20.2.0"
   },
   "eslintConfig": {
     "extends": "xo-space",
@@ -65,7 +65,7 @@
     "para-client-js": "^1.34.0",
     "resolve": "^1.17.0",
     "striptags": "^3.1.1",
-    "update-notifier": "^4.1.1",
-    "yargs-parser": ">=13.1.2"
+    "update-notifier": "^5.0.0",
+    "yargs-parser": ">=20.2.0"
   }
 }
