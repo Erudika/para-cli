@@ -19,6 +19,8 @@
 'use strict';
 var fs = require('fs');
 var path = require('path');
+var util = require('util');
+var encoder = new util.TextEncoder('utf-8');
 var striptags = require('striptags');
 var htmlparser = require('htmlparser2');
 var readline = require('readline');
@@ -97,7 +99,7 @@ exports.createAll = function (pc, input, flags) {
 			}
 			id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
 			console.log(chalk.green('✔'), 'Creating', chalk.yellow(id));
-			var textEncoded = new TextEncoder().encode(json.text);
+			var textEncoded = encoder.encode(json.text);
 			//batchSize += textEncoded.length;
 			if (textEncoded.length > MAX_FILE_SIZE) {
 				console.log(chalk.red('!'), chalk.yellow('File is larger than',
