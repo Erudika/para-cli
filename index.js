@@ -38,12 +38,10 @@ import { lookup } from 'mime-types';
 import { sync } from 'globby';
 import chalk from 'chalk';
 import { Promise } from 'rsvp';
-import ParaClient, { ParaObject as _ParaObject, Pager as _Pager } from 'para-client-js';
+import { ParaClient, ParaObject, Pager } from 'para-client-js';
 
 const { cyan, red, yellow, green } = chalk;
 const { sign } = jsonwebtoken;
-var ParaObject = _ParaObject;
-var Pager = _Pager;
 var MAX_FILE_SIZE = 350 * 1024;
 var defaultConfig = { accessKey: '', secretKey: '', endpoint: 'https://paraio.com' };
 

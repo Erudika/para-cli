@@ -29,7 +29,7 @@ import Conf from 'conf';
 import figlet from 'figlet';
 import chalk from 'chalk';
 import meow from 'meow';
-import { defaultConfig, setup, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex } from './para-cli-utils.js';
+import { defaultConfig, setup, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex } from './index.js';
 
 const { blue } = chalk;
 const { textSync } = figlet;

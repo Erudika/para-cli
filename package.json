@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.14.0",
+  "version": "1.15.0",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
   "type": "module",
@@ -61,7 +61,7 @@
     "jsonwebtoken": "^8.5.1",
     "meow": "^10.0.0",
     "mime-types": "^2.1.30",
-    "para-client-js": "^1.35.1",
+    "para-client-js": "^1.37.0",
     "resolve": "^1.20.0",
     "striptags": "^3.1.1",
     "update-notifier": "^5.1.0",
