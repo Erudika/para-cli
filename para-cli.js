@@ -18,15 +18,21 @@
  * For issues and patches go to: https://github.com/erudika
  */
 
+/* eslint indent: ["error", "tab"] */
+/* eslint object-curly-spacing: ["error", "always"] */
+
 'use strict';
 
-var updateNotifier = require('update-notifier');
-var ParaClient = require('para-client-js');
-var Conf = require('conf');
-var figlet = require('figlet');
-var chalk = require('chalk');
-var meow = require('meow');
-var paraCLI = require('./');
+import updateNotifier from 'update-notifier';
+import ParaClient from 'para-client-js';
+import Conf from 'conf';
+import figlet from 'figlet';
+import chalk from 'chalk';
+import meow from 'meow';
+import { defaultConfig, setup, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex } from './para-cli-utils.js';
+
+const { blue } = chalk;
+const { textSync } = figlet;
 
 var cli = meow(`
 	Usage:
@@ -76,6 +82,7 @@ var cli = meow(`
 	  $ para-cli new-app "mynewapp" --name "Full app name"
 
 `, {
+	importMeta: import.meta,
 	flags: {
 		id: {
 			type: 'string'
@@ -83,74 +90,74 @@ var cli = meow(`
 	}
 });
 
-updateNotifier({pkg: cli.pkg}).notify();
+updateNotifier({ pkg: cli.pkg }).notify();
 
 var config = new Conf({
 	projectName: 'para-cli',
-	defaults: paraCLI.defaultConfig
+	defaults: defaultConfig
 });
 
-var logo = chalk.blue(figlet.textSync(' para CLI', {font: 'Slant'})) + '\n';
+var logo = blue(textSync(' para CLI', { font: 'Slant' })) + '\n';
 var help = logo + cli.help;
 var input = cli.input;
 var flags = cli.flags;
 var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
 var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
 var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
-var pc = new ParaClient(accessKey, secretKey, {endpoint: endpoint});
+var pc = new ParaClient(accessKey, secretKey, { endpoint: endpoint });
 
 if (!input[0]) {
 	console.log(help);
 }
 
 if (input[0] === 'setup') {
-	paraCLI.setup(config);
+	setup(config);
 }
 
 if (input[0] === 'create') {
-	paraCLI.createAll(pc, input, flags);
+	createAll(pc, input, flags);
 }
 
 if (input[0] === 'read') {
-	paraCLI.readAll(pc, flags);
+	readAll(pc, flags);
 }
 
 if (input[0] === 'update') {
-	paraCLI.updateAll(pc, input, flags);
+	updateAll(pc, input, flags);
 }
 
 if (input[0] === 'delete') {
-	paraCLI.deleteAll(pc, input, flags);
+	deleteAll(pc, input, flags);
 }
 
 if (input[0] === 'search') {
-	paraCLI.search(pc, input, flags);
+	search(pc, input, flags);
 }
 
 if (input[0] === 'new-key') {
-	paraCLI.newKeys(pc, config);
+	newKeys(pc, config);
 }
 
 if (input[0] === 'new-jwt') {
-	paraCLI.newJWT(accessKey, secretKey, endpoint, config);
+	newJWT(accessKey, secretKey, endpoint, config);
 }
 
 if (input[0] === 'new-app') {
-	paraCLI.newApp(pc, input, flags);
+	newApp(pc, input, flags);
 }
 
 if (input[0] === 'ping') {
-	paraCLI.ping(pc, config);
+	ping(pc, config);
 }
 
 if (input[0] === 'me') {
-	paraCLI.me(pc, config);
+	me(pc, config);
 }
 
 if (input[0] === 'app-settings') {
-	paraCLI.appSettings(pc, config);
+	appSettings(pc, config);
 }
 
 if (input[0] === 'rebuild-index') {
-	paraCLI.rebuildIndex(pc, config, flags);
+	rebuildIndex(pc, config, flags);
 }
