@@ -53,15 +53,14 @@ export function setup(config) {
 		input: process.stdin,
 		output: process.stdout
 	});
-	var that = this;
 	rl.question(cyan.bold('Para Access Key: '), function (accessKey) {
 		rl.question(cyan.bold('Para Secret Key: '), function (secretKey) {
 			rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
 				var access = accessKey || config.get('accessKey');
 				var secret = secretKey || config.get('secretKey');
-				that.newJWT(access, secret, endpoint, config);
+				newJWT(access, secret, endpoint, config);
 				var pc = new ParaClient(access, secret, { endpoint: endpoint || defaultConfig.endpoint });
-				that.ping(pc, config);
+				ping(pc, config);
 				rl.close();
 			});
 		});
