@@ -29,7 +29,7 @@ import Conf from 'conf';
 import figlet from 'figlet';
 import chalk from 'chalk';
 import meow from 'meow';
-import { defaultConfig, setup, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex } from './index.js';
+import { defaultConfig, setup, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex, exportData, importData } from './index.js';
 
 const { blue } = chalk;
 const { textSync } = figlet;
@@ -50,6 +50,8 @@ var cli = meow(`
 	  new-key                                Generates a new secret key and saves it to config.json
 	  new-jwt                                Generates a new JWT super token to be used for app authentication
 	  new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
+	  export                                 Exports all data from the app's table
+	  import <file>                          Imports data from a previously exported ZIP archive
 	  ping                                   Tests the connection to the Para server
 	  me                                     Returns the JSON for the currently authenticated user or app
 
@@ -160,4 +162,12 @@ if (input[0] === 'app-settings') {
 
 if (input[0] === 'rebuild-index') {
 	rebuildIndex(pc, config, flags);
+}
+
+if (input[0] === 'export') {
+	exportData(pc, config, flags);
+}
+
+if (input[0] === 'import') {
+	importData(pc, input, config);
 }

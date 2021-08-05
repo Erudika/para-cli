@@ -34,50 +34,52 @@ $ para-cli setup
   Command-line tool for Para backend servers
 
   Usage:
-    $ para-cli [command] [file]
+	  $ para-cli [command] [file]
 
-  Commands:
-    setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
-    create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
-    read --id 123 [--id 345 ...]           Fetches objects with the given ids
-    update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
-    delete [glob] --id 123 ...             Deletes one or more objects from Para
-    search "query" [--limit --page --sort] Searches the Para index for objects given a query string
-    rebuild-index                          Rebuilds the entire search index
-    app-settings                           Returns all settings for the authenticated app
-    new-key                                Generates a new secret key and saves it to config.json
-    new-jwt                                Generates a new JWT super token to be used for app authentication
-    new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
-    ping                                   Tests the connection to the Para server
-    me                                     Returns the JSON for the currently authenticated user or app
+	Commands:
+	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
+	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
+	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
+	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
+	  delete [glob] --id 123 ...             Deletes one or more objects from Para
+	  search "query" [--limit --page --sort] Searches the Para index for objects given a query string
+	  rebuild-index                          Rebuilds the entire search index
+	  app-settings                           Returns all settings for the authenticated app
+	  new-key                                Generates a new secret key and saves it to config.json
+	  new-jwt                                Generates a new JWT super token to be used for app authentication
+	  new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
+	  export                                 Exports all data from the app's table
+	  import <file>                          Imports data from a previously exported ZIP archive
+	  ping                                   Tests the connection to the Para server
+	  me                                     Returns the JSON for the currently authenticated user or app
 
-  Options:
-    --type          Sets the "type" field of an object
-    --id            Sets the "id" field of an object
-    --sanitize      Strips all symbols from input files
-    --accessKey     Sets the Para access key
-    --secretKey     Sets the Para secret key
-    --endpoint      Sets the URL of the Para server
-    --sort          Sets the field on which to sort search results
-    --desc          Descending sort for search results (default: true)
-    --page          Page number for search results, "all" will auto-paginate through all results
-    --limit         Limits the number of search results
-    --lastKey       Sets the last id for search-after pagination
-    --cwd           Sets the current directory - used for resolving file paths
-    --encodeId      By default all ids are Base64 encoded, unless this is 'false'
-    --help          Prints the list of commands
-    --version       Prints the version of the program
+	Options:
+	  --type          Sets the "type" field of an object
+	  --id            Sets the "id" field of an object
+	  --sanitize      Strips all symbols from input files
+	  --accessKey     Sets the Para access key
+	  --secretKey     Sets the Para secret key
+	  --endpoint      Sets the URL of the Para server
+	  --sort          Sets the field on which to sort search results
+	  --desc          Descending sort for search results (default: true)
+	  --page          Page number for search results, "all" will auto-paginate through all results
+	  --limit         Limits the number of search results
+	  --lastKey       Sets the last id for search-after pagination
+	  --cwd           Sets the current directory - used for resolving file paths
+	  --encodeId      By default all ids are Base64 encoded, unless this is 'false'
+	  --help          Prints the list of commands
+	  --version       Prints the version of the program
 
-  Examples:
-    $ para-cli setup
-    $ para-cli create my-blog-post.md
-    $ para-cli read --id my-blog-post.md
-    $ para-cli create index.html --type webpage --id "My new article" --sanitize
-    $ para-cli delete --id 123 --id "my-blog-post.md"
-    $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
-    $ para-cli search "*" --type article --page all
-    $ para-cli new-key
-    $ para-cli new-app "mynewapp" --name "Full app name"
+	Examples:
+	  $ para-cli setup
+	  $ para-cli create my-blog-post.md
+	  $ para-cli read --id my-blog-post.md
+	  $ para-cli create index.html --type webpage --id "My new article" --sanitize
+	  $ para-cli delete --id 123 --id "my-blog-post.md"
+	  $ para-cli search "type:article AND title:*" --sort timestamp --desc false --limit 10
+	  $ para-cli search "*" --type article --page all
+	  $ para-cli new-key
+	  $ para-cli new-app "mynewapp" --name "Full app name"
 
 ```
 

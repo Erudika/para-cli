@@ -26,8 +26,8 @@
 /* eslint object-curly-spacing: ["error", "always"] */
 
 'use strict';
-import { statSync, readFileSync } from 'fs';
-import { relative, basename } from 'path';
+import { statSync, readFileSync, writeFileSync } from 'fs';
+import { relative, basename, resolve } from 'path';
 import { TextEncoder } from 'util';
 var encoder = new TextEncoder('utf-8');
 import striptags from 'striptags';
@@ -38,6 +38,7 @@ import { lookup } from 'mime-types';
 import { sync } from 'globby';
 import chalk from 'chalk';
 import { Promise } from 'rsvp';
+import apiClient from 'superagent';
 import { ParaClient, ParaObject, Pager } from 'para-client-js';
 
 const { cyan, red, yellow, green } = chalk;
@@ -70,6 +71,7 @@ export function setup(config) {
 export function createAll(pc, input, flags) {
 	if (!input[1]) {
 		fail('No files specified.');
+		return;
 	}
 
 	var files = sync(input[1], { realpath: true });
@@ -180,6 +182,7 @@ export function readAll(pc, flags) {
 export function updateAll(pc, input, flags) {
 	if (!input[1]) {
 		fail('No files specified.');
+		return;
 	}
 
 	var files = sync(input[1], { realpath: true });
@@ -247,6 +250,7 @@ export function newKeys(pc, config) {
 export function newJWT(accessKey, secretKey, endpoint, config) {
 	if (!accessKey || accessKey.length < 3 || !secretKey || secretKey.length < 6) {
 		fail('Invalid credentials.');
+		return;
 	}
 
 	var now = Math.round(new Date().getTime() / 1000);
@@ -266,6 +270,7 @@ export function newJWT(accessKey, secretKey, endpoint, config) {
 export function newApp(pc, input, flags) {
 	if (!input[1]) {
 		fail('App name not specified.');
+		return;
 	}
 
 	var appid = input[1];
@@ -302,6 +307,46 @@ export function me(pc, config) {
 	}).catch(function () {
 		fail('Connection failed. Server might be down. Check the configuration file', yellow(config.path));
 	});
+}
+
+export function exportData(pc, config) {
+	pc.invokeGet('/_export').then(function (data) {
+		try {
+			var filename = (data.headers['content-disposition'] || 'export.zip');
+			var filesize = Math.round(((data.headers['content-length'] || 0) / 1000000) * 100) / 100;
+			filename = filename.substring(filename.lastIndexOf('=') + 1);
+			writeFileSync(filename, data.body);
+			console.log(green('✔'), yellow('Exported ' + filesize + 'MB of data to file ' + filename));
+		} catch (e) {
+			console.error(e);
+		}
+	}).catch(function () {
+		fail('Connection failed. Server might be down. Check the configuration file', yellow(config.path));
+	});
+}
+
+export function importData(pc, input, config) {
+	if (!input[1]) {
+		fail('No file to import.');
+		return;
+	}
+	if (!config.get('jwt')) {
+		newJWT(config.get('accessKey'), config.get('secretKey'), config.get('endpoint'), config);
+	}
+	var headers = {
+		'User-Agent': 'Para CLI tool',
+		'Content-Type': 'application/zip',
+		'Authorization': 'Bearer ' + config.get('jwt')
+	};
+	try {
+		apiClient.put(pc.endpoint + '/v1/_import').set(headers).send(readFileSync(resolve(input[1]))).then(function(res) {
+			console.log(green('✔'), yellow('Imported ' + res.body.count + ' object into app "' + res.body.appid) + '"');
+		}).catch(function (e) {
+			fail('Import request failed. ' + e);
+		});
+	} catch (e) {
+		fail('Import request failed: ' + e);
+	}
 }
 
 function promiseWhile(results, fn) {
