@@ -35,7 +35,7 @@ import { Parser } from 'htmlparser2';
 import { createInterface } from 'readline';
 import jsonwebtoken from 'jsonwebtoken';
 import { lookup } from 'mime-types';
-import { sync } from 'globby';
+import { globbySync } from 'globby';
 import chalk from 'chalk';
 import { Promise } from 'rsvp';
 import apiClient from 'superagent';
@@ -74,7 +74,7 @@ export function createAll(pc, input, flags) {
 		return;
 	}
 
-	var files = sync(input[1], { realpath: true });
+	var files = globbySync(input[1], { realpath: true });
 	var totalSize = 0;
 	var totalObjects = 0;
 	var batches = [[]];
@@ -185,7 +185,7 @@ export function updateAll(pc, input, flags) {
 		return;
 	}
 
-	var files = sync(input[1], { realpath: true });
+	var files = globbySync(input[1], { realpath: true });
 	var updateList = [];
 
 	for (var i = 0; i < files.length; i++) {
@@ -219,7 +219,7 @@ export function updateAll(pc, input, flags) {
 
 export function deleteAll(pc, input, flags) {
 	if (flags.id || input[1]) {
-		var deleteIds = sync(input[1] || ' ', { realpath: true });
+		var deleteIds = globbySync(input[1] || ' ', { realpath: true });
 		if (deleteIds.length === 0) {
 			deleteIds = flags.id instanceof Array ? flags.id : [String(flags.id)];
 		}
