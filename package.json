@@ -59,7 +59,7 @@
     "globby": "^11.0.4",
     "htmlparser2": "^6.1.0",
     "jsonwebtoken": "^8.5.1",
-    "meow": "^10.0.1",
+    "meow": "^10.1.2",
     "mime-types": "^2.1.31",
     "para-client-js": "^1.37.6",
     "resolve": "^1.20.0",
