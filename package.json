@@ -52,7 +52,7 @@
   "dependencies": {
     "brace-expansion": "^2.0.1",
     "chalk": "^4.1.1",
-    "conf": "^10.0.1",
+    "conf": "^10.1.0",
     "exit": "^0.1.2",
     "figlet": "^1.5.0",
     "get-stdin": "^9.0.0",
