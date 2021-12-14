@@ -51,7 +51,7 @@
   "license": "Apache-2.0",
   "dependencies": {
     "brace-expansion": "^2.0.1",
-    "chalk": "^4.1.1",
+    "chalk": "^4.1.2",
     "conf": "^10.0.1",
     "exit": "^0.1.2",
     "figlet": "^1.5.0",
