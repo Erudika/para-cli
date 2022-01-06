@@ -21,8 +21,6 @@
 /* eslint indent: ["error", "tab"] */
 /* eslint object-curly-spacing: ["error", "always"] */
 
-'use strict';
-
 import updateNotifier from 'update-notifier';
 import ParaClient from 'para-client-js';
 import Conf from 'conf';

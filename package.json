@@ -24,7 +24,7 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^8.4.1"
+    "eslint": "^8.6.0"
   },
   "repository": "Erudika/para-cli",
   "dependencies": {
@@ -39,8 +39,8 @@
     "jsonwebtoken": "^8.5.1",
     "meow": "^10.0.1",
     "mime-types": "^2.1.31",
-    "para-client-js": "^1.37.6",
-    "resolve": "^1.20.0",
+    "para-client-js": "^1.37.8",
+    "resolve": "^1.21.0",
     "striptags": "^3.1.1",
     "update-notifier": "^5.1.0",
     "yargs-parser": ">=20.2.7"

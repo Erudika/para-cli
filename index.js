@@ -25,7 +25,6 @@
 /* eslint indent: ["error", "tab"] */
 /* eslint object-curly-spacing: ["error", "always"] */
 
-'use strict';
 import { statSync, readFileSync, writeFileSync } from 'fs';
 import { relative, basename, resolve } from 'path';
 import { TextEncoder } from 'util';
