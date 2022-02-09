@@ -56,12 +56,28 @@ export function setup(config) {
 	rl.question(cyan.bold('Para Access Key: '), function (accessKey) {
 		rl.question(cyan.bold('Para Secret Key: '), function (secretKey) {
 			rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
-				var access = accessKey || config.get('accessKey');
-				var secret = secretKey || config.get('secretKey');
+				var access = (accessKey || config.get('accessKey')).trim();
+				var secret = (secretKey || config.get('secretKey')).trim();
+				var endpoint = (endpoint || config.get('endpoint')).trim();
 				newJWT(access, secret, endpoint, config);
 				var pc = new ParaClient(access, secret, { endpoint: endpoint || defaultConfig.endpoint });
 				ping(pc, config);
-				rl.close();
+				if (access === 'app:para') {
+					listApps(pc, function () {
+						// if none, ask to create one
+						rl.question(cyan.bold('Would you like to create a new Para app? [Y/n] '), function (Yn) {
+							Yn = Yn.trim();
+							if ('' === Yn || 'y' === Yn || 'Y' === Yn) {
+								rl.question(cyan.bold('App name: '), function (appname) {
+									newApp(pc, ['', appname], {});
+									rl.close();
+								});
+							} else {
+								rl.close();
+							}
+						});
+					});
+				}
 			});
 		});
 	});
@@ -294,9 +310,11 @@ export function ping(pc, config) {
 				cyan(mee.type + ' ' + mee.name + ' (' + mee.id + ')'));
 		}).catch(function () {
 			fail('Connection failed. Run "para-cli setup" or check the configuration file', yellow(config.path));
+			process.exit(1);
 		});
 	}).catch(function () {
 		fail('Connection failed. Run "para-cli setup" or check the configuration file', yellow(config.path));
+		process.exit(1);
 	});
 }
 
@@ -353,7 +371,9 @@ function promiseWhile(results, fn) {
 		function loop() {
 			return Promise.resolve(fn()).then(function (result) {
 				if (result && result.length > 0) {
-					results = results.concat(result);
+					result.forEach(function (res) {
+						results.push(res);
+					});
 					return loop();
 				}
 				resolve();
@@ -404,6 +424,67 @@ export function rebuildIndex(pc, config, flags) {
 	}).catch(function (err) {
 		fail('Reindex failed.', err);
 	});
+}
+
+export function listApps(config, flags, parentAccessKey, failureCallback) {
+	var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
+	var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
+	var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
+	var pc = new ParaClient(accessKey, secretKey, {endpoint: endpoint});
+	var p = new Pager();
+	var results = [];
+	p.sortby = '_docid';
+	p.page = 1;
+	promiseWhile(results, function () {
+		return pc.findQuery('app', '*', p);
+	}).then(function () {
+		var apps = results.map(function (app) {return app.appIdentifier.trim();});
+		if (apps.length) {
+			console.log('Found', p.count, 'apps:', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
+			console.log('Typing', cyan('para-cli select'), green(apps[0]), 'will switch to that app. Current app:',
+				green(parentAccessKey));
+			process.exit(0);
+		} else {
+			failureCallback();
+		}
+	}).catch(function (err) {
+		failureCallback();
+	});
+}
+
+export function selectApp(pc, input, config, flags) {
+	var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
+	var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
+	if (accessKey === 'app:para' && secretKey) {
+		var selectedApp = 'app:' + (input[1] || 'para').trim();
+		if (selectedApp === 'app:para') {
+			config.delete('selectedApp');
+			console.log(green('✔'), 'Selected', green(selectedApp), 'as the current app.');
+			return;
+		}
+		var now = Math.round(new Date().getTime() / 1000);
+		var jwt = sign(JSON.stringify({
+			iat: now,
+			exp: now + 60,
+			appid: accessKey,
+			getCredentials: selectedApp
+		}), secretKey, { algorithm: 'HS256' });
+		pc.setAccessToken(jwt);
+		pc.me(jwt).then(function (data) {
+			if (data && data.credentials) {
+				config.set('selectedApp', data.credentials);
+				console.log(green('✔'), 'Selected', green(selectedApp), 'as the current app.');
+			} else {
+				fail('That did not work -' + red(input[1]) + ' try updating Para to the latest version.');
+			}
+			pc.clearAccessToken();
+		}).catch(function (err) {
+			fail('App ' + red(input[1]) + ' not found!');
+			pc.clearAccessToken();
+		});
+	} else {
+		fail('This command only works when Para CLI is configured to use the keys for the root app.');
+	}
 }
 
 function sendFileChunk(chunkId, textEncoded, json, id, flags, start, end, pc, decoder) {

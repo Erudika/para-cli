@@ -27,9 +27,9 @@ import Conf from 'conf';
 import figlet from 'figlet';
 import chalk from 'chalk';
 import meow from 'meow';
-import { defaultConfig, setup, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex, exportData, importData } from './index.js';
+import { defaultConfig, setup, listApps, selectApp, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex, exportData, importData } from './index.js';
 
-const { blue } = chalk;
+const { red, green, blue } = chalk;
 const { textSync } = figlet;
 
 var cli = meow(`
@@ -38,6 +38,8 @@ var cli = meow(`
 
 	Commands:
 	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
+	  apps                                   Returns a list of all Para apps
+	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests.
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
@@ -104,68 +106,88 @@ var flags = cli.flags;
 var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
 var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
 var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
-var pc = new ParaClient(accessKey, secretKey, { endpoint: endpoint });
+var selectedApp = config.get('selectedApp');
+
+if (selectedApp && selectedApp.accessKey && selectedApp.accessKey.indexOf("app:") === 0) {
+	accessKey = selectedApp.accessKey;
+	secretKey = selectedApp.secretKey;
+}
 
 if (!input[0]) {
 	console.log(help);
-}
-
-if (input[0] === 'setup') {
+} else if (!accessKey || !secretKey) {
+	console.error(red('Command ' + input[0] + ' failed! Blank credentials, running setup first...'));
+	process.exitCode = 1;
 	setup(config);
+} else {
+	var pc = new ParaClient(accessKey, secretKey, { endpoint: endpoint });
+
+	if (input[0] === 'setup') {
+		setup(config);
+	}
+
+	if (input[0] === 'apps') {
+		listApps(config, flags, accessKey, function () {console.log('No apps found within', green(accessKey));});
+	}
+
+	if (input[0] === 'select') {
+		selectApp(pc, input, config, flags);
+	}
+
+	if (input[0] === 'create') {
+		createAll(pc, input, flags);
+	}
+
+	if (input[0] === 'read') {
+		readAll(pc, flags);
+	}
+
+	if (input[0] === 'update') {
+		updateAll(pc, input, flags);
+	}
+
+	if (input[0] === 'delete') {
+		deleteAll(pc, input, flags);
+	}
+
+	if (input[0] === 'search') {
+		search(pc, input, flags);
+	}
+
+	if (input[0] === 'new-key') {
+		newKeys(pc, config);
+	}
+
+	if (input[0] === 'new-jwt') {
+		newJWT(accessKey, secretKey, endpoint, config);
+	}
+
+	if (input[0] === 'new-app') {
+		newApp(pc, input, flags);
+	}
+
+	if (input[0] === 'ping') {
+		ping(pc, config);
+	}
+
+	if (input[0] === 'me') {
+		me(pc, config);
+	}
+
+	if (input[0] === 'app-settings') {
+		appSettings(pc, config);
+	}
+
+	if (input[0] === 'rebuild-index') {
+		rebuildIndex(pc, config, flags);
+	}
+
+	if (input[0] === 'export') {
+		exportData(pc, config, flags);
+	}
+
+	if (input[0] === 'import') {
+		importData(pc, input, config);
+	}
 }
 
-if (input[0] === 'create') {
-	createAll(pc, input, flags);
-}
-
-if (input[0] === 'read') {
-	readAll(pc, flags);
-}
-
-if (input[0] === 'update') {
-	updateAll(pc, input, flags);
-}
-
-if (input[0] === 'delete') {
-	deleteAll(pc, input, flags);
-}
-
-if (input[0] === 'search') {
-	search(pc, input, flags);
-}
-
-if (input[0] === 'new-key') {
-	newKeys(pc, config);
-}
-
-if (input[0] === 'new-jwt') {
-	newJWT(accessKey, secretKey, endpoint, config);
-}
-
-if (input[0] === 'new-app') {
-	newApp(pc, input, flags);
-}
-
-if (input[0] === 'ping') {
-	ping(pc, config);
-}
-
-if (input[0] === 'me') {
-	me(pc, config);
-}
-
-if (input[0] === 'app-settings') {
-	appSettings(pc, config);
-}
-
-if (input[0] === 'rebuild-index') {
-	rebuildIndex(pc, config, flags);
-}
-
-if (input[0] === 'export') {
-	exportData(pc, config, flags);
-}
-
-if (input[0] === 'import') {
-	importData(pc, input, config);
-}

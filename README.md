@@ -19,6 +19,7 @@ This is the command-line tool for interacting with a Para server.
 ```sh
 $ npm install -g para-cli
 $ para-cli setup
+$ para-cli ping
 ```
 
 ## Usage
@@ -38,6 +39,8 @@ $ para-cli setup
 
 	Commands:
 	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
+	  apps                                   Returns a list of all Para apps
+	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests.
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
