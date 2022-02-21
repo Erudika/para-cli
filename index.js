@@ -63,7 +63,7 @@ export function setup(config) {
 				var pc = new ParaClient(access, secret, { endpoint: endpoint || defaultConfig.endpoint });
 				ping(pc, config);
 				if (access === 'app:para') {
-					listApps(pc, function () {
+					listApps(config, {}, access, function () {
 						// if none, ask to create one
 						rl.question(cyan.bold('Would you like to create a new Para app? [Y/n] '), function (Yn) {
 							Yn = Yn.trim();
