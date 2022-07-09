@@ -108,7 +108,7 @@ var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('se
 var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
 var selectedApp = config.get('selectedApp');
 
-if (selectedApp && selectedApp.accessKey && selectedApp.accessKey.indexOf("app:") === 0) {
+if (!flags.accessKey && !flags.secretKey && selectedApp && selectedApp.accessKey && selectedApp.accessKey.indexOf("app:") === 0) {
 	accessKey = selectedApp.accessKey;
 	secretKey = selectedApp.secretKey;
 }
