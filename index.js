@@ -56,7 +56,7 @@ export function setup(config) {
 	rl.question(cyan.bold('Para Access Key: '), function (accessKey) {
 		rl.question(cyan.bold('Para Secret Key: '), function (secretKey) {
 			rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
-				var access = (accessKey || config.get('accessKey')).trim();
+				var access = (accessKey || config.get('accessKey') || "app:para").trim();
 				var secret = (secretKey || config.get('secretKey')).trim();
 				var endpoint = (endpoint || config.get('endpoint')).trim();
 				newJWT(access, secret, endpoint, config);
@@ -427,9 +427,10 @@ export function rebuildIndex(pc, config, flags) {
 }
 
 export function listApps(config, flags, parentAccessKey, failureCallback) {
-	var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
-	var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
-	var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
+	var selectedEndpoint = getSelectedEndpoint(config, flags);
+	var accessKey = selectedEndpoint.accessKey;
+	var secretKey = selectedEndpoint.secretKey;
+	var endpoint = selectedEndpoint.endpoint;
 	var pc = new ParaClient(accessKey, secretKey, {endpoint: endpoint});
 	var p = new Pager();
 	var results = [];
@@ -440,7 +441,7 @@ export function listApps(config, flags, parentAccessKey, failureCallback) {
 	}).then(function () {
 		var apps = results.map(function (app) {return app.appIdentifier.trim();});
 		if (apps.length) {
-			console.log('Found', p.count, 'apps:', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
+			console.log('Found', p.count, 'apps on ' + cyan(endpoint) + ':', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
 			console.log('Typing', cyan('para-cli select'), green(apps[0]), 'will switch to that app. Current app:',
 				green(parentAccessKey));
 			process.exit(0);
@@ -452,9 +453,11 @@ export function listApps(config, flags, parentAccessKey, failureCallback) {
 	});
 }
 
-export function selectApp(pc, input, config, flags) {
-	var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
-	var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
+export function selectApp(input, config, flags) {
+	var selectedEndpoint = getSelectedEndpoint(config, flags);
+	var accessKey = selectedEndpoint.accessKey;
+	var secretKey = selectedEndpoint.secretKey;
+	var endpoint = selectedEndpoint.endpoint;
 	if (accessKey === 'app:para' && secretKey) {
 		var selectedApp = 'app:' + (input[1] || 'para').trim();
 		if (selectedApp === 'app:para') {
@@ -465,25 +468,134 @@ export function selectApp(pc, input, config, flags) {
 		var now = Math.round(new Date().getTime() / 1000);
 		var jwt = sign(JSON.stringify({
 			iat: now,
-			exp: now + 60,
+			exp: now + 10,
 			appid: accessKey,
 			getCredentials: selectedApp
 		}), secretKey, { algorithm: 'HS256' });
-		pc.setAccessToken(jwt);
-		pc.me(jwt).then(function (data) {
+		var paraClient = new ParaClient(accessKey, secretKey, { endpoint: endpoint });
+		paraClient.setAccessToken(jwt);
+		paraClient.me(jwt).then(function (data) {
 			if (data && data.credentials) {
 				config.set('selectedApp', data.credentials);
 				console.log(green('✔'), 'Selected', green(selectedApp), 'as the current app.');
 			} else {
 				fail('That did not work -' + red(input[1]) + ' try updating Para to the latest version.');
 			}
-			pc.clearAccessToken();
 		}).catch(function (err) {
 			fail('App ' + red(input[1]) + ' not found!');
-			pc.clearAccessToken();
 		});
 	} else {
 		fail('This command only works when Para CLI is configured to use the keys for the root app.');
+	}
+}
+
+export function listEndpoints(config, flags, failureCallback) {
+	var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
+	var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
+	var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
+	var endpoints = config.get('endpoints') || [];
+	var list = [{endpoint: endpoint, accessKey: accessKey, secretKey: secretKey}].concat(endpoints);
+	if (list.length === 0) {
+		failureCallback();
+		return [];
+	}
+	for (var i = 0; i < list.length; i++) {
+		var ep = list[i];
+		var selected = (config.get('selectedEndpoint') || 0) === i;
+		var rootAppConfigured = ep.accessKey === 'app:para' && ep.secretKey.length > 10;
+		console.log(yellow((selected ? ' ➤' : '  '), (i + 1) + '. ') + cyan(ep.endpoint), rootAppConfigured ?
+			green('✔ root app configured') : red('root app not configured'));
+	}
+	return list;
+}
+
+export function addEndpoint(config) {
+	var endpoints = config.get('endpoints') || [];
+	var rl = createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+	rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
+		rl.question(cyan.bold('Para Secret Key (for root app app:para): '), function (secretKey) {
+			var pc = new ParaClient("app:para", secretKey, {endpoint: endpoint});
+			var endpoints = config.get('endpoints') || [];
+			var existing = false;
+			for (var i = 0; i < endpoints.length; i++) {
+				var ep = endpoints[i];
+				if (ep.endpoint === endpoint) {
+					ep.secretKey = secretKey;
+					existing = true;
+				}
+			}
+			if (!existing) {
+				endpoints.push({accessKey: 'app:para', secretKey: secretKey, endpoint: endpoint});
+			}
+			config.set('endpoints', endpoints);
+			ping(pc, config);
+			rl.close();
+		});
+	});
+}
+
+export function removeEndpoint(config, flags) {
+	var list = listEndpoints(config, flags, function () {console.log('No endpoints found.');});
+	var rl = createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+
+	rl.question(yellow.bold('Type the number of the Para endpoint to remove: '), function (index) {
+		var selectedEndpoint = 0;
+		if (!isNaN(index) && index <= list.length && index >= 1) {
+			selectedEndpoint = index - 1;
+		}
+		var url = list[selectedEndpoint].endpoint;
+		if (selectedEndpoint === 0) {
+			config.set('accessKey', 'app:para');
+			config.set('secretKey', '');
+			config.set('endpoint', defaultConfig.endpoint);
+		} else {
+			if (selectedEndpoint === config.get('selectedEndpoint')) {
+				config.delete('selectedEndpoint');
+				config.delete('selectedApp');
+			}
+			list.splice(selectedEndpoint, 1);
+			list.shift();
+			config.set('endpoints', list);
+		}
+		console.log("Removed endpoint: " + cyan(url));
+		rl.close();
+	});
+}
+
+export function selectEndpoint(config, flags) {
+	var list = listEndpoints(config, flags, function () {console.log('No endpoints found.');});
+	var rl = createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+	rl.question(yellow.bold('Type the number of the Para endpoint to select: '), function (index) {
+		var selectedEndpoint = 0;
+		if (!isNaN(index) && index <= list.length && index >= 1) {
+			selectedEndpoint = index - 1;
+		}
+		config.delete('selectedApp');
+		config.set('selectedEndpoint', selectedEndpoint);
+		console.log("Selected endpoint: " + cyan(list[selectedEndpoint].endpoint));
+		rl.close();
+	});
+}
+
+function getSelectedEndpoint(config, flags) {
+	var accessKey = flags.accessKey || process.env.PARA_ACCESS_KEY || config.get('accessKey');
+	var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('secretKey');
+	var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
+	var endpoints = [{endpoint: endpoint, accessKey: accessKey, secretKey: secretKey}].concat(config.get('endpoints') || []);
+	try {
+		return endpoints[config.get('selectedEndpoint') || 0];
+	} catch (e) {
+		config.delete('selectedEndpoint');
+		return endpoints[0];
 	}
 }
 

@@ -27,7 +27,10 @@ import Conf from 'conf';
 import figlet from 'figlet';
 import chalk from 'chalk';
 import meow from 'meow';
-import { defaultConfig, setup, listApps, selectApp, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex, exportData, importData } from './index.js';
+import {
+	defaultConfig, setup, listApps, selectEndpoint, addEndpoint, removeEndpoint, selectApp, createAll, readAll,
+	updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex, exportData, importData
+} from './index.js';
 
 const { red, green, blue } = chalk;
 const { textSync } = figlet;
@@ -40,6 +43,7 @@ var cli = meow(`
 	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
 	  apps                                   Returns a list of all Para apps
 	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests.
+	  endpoints [add|remove]                 List and select Para server endpoints, add new or remove an exiting one.
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
@@ -82,7 +86,9 @@ var cli = meow(`
 	  $ para-cli search "*" --type article --page all
 	  $ para-cli new-key
 	  $ para-cli new-app "mynewapp" --name "Full app name"
-
+	  $ para-cli apps
+	  $ para-cli select scoold
+	  $ para-cli endpoints
 `, {
 	importMeta: import.meta,
 	flags: {
@@ -111,12 +117,14 @@ var selectedApp = config.get('selectedApp');
 if (!flags.accessKey && !flags.secretKey && selectedApp && selectedApp.accessKey && selectedApp.accessKey.indexOf("app:") === 0) {
 	accessKey = selectedApp.accessKey;
 	secretKey = selectedApp.secretKey;
+	endpoint = selectedApp.endpoint;
 }
 
 if (!input[0]) {
 	console.log(help);
 } else if (!accessKey || !secretKey) {
 	console.error(red('Command ' + input[0] + ' failed! Blank credentials, running setup first...'));
+	console.log("Please enter the access key and secret key for the root app 'app:para' first.");
 	process.exitCode = 1;
 	setup(config);
 } else {
@@ -130,8 +138,18 @@ if (!input[0]) {
 		listApps(config, flags, accessKey, function () {console.log('No apps found within', green(accessKey));});
 	}
 
+	if (input[0] === 'endpoints') {
+		if (input.length > 1 && input[1] === 'add') {
+			addEndpoint(config);
+		} else if (input.length > 1 && input[1] === 'remove') {
+			removeEndpoint(config, flags);
+		} else {
+			selectEndpoint(config, flags);
+		}
+	}
+
 	if (input[0] === 'select') {
-		selectApp(pc, input, config, flags);
+		selectApp(input, config, flags);
 	}
 
 	if (input[0] === 'create') {
