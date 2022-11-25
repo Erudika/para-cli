@@ -17,9 +17,9 @@ This is the command-line tool for interacting with a Para server.
 ## Installation
 
 ```sh
-$ npm install -g para-cli
-$ para-cli setup
-$ para-cli ping
+npm install -g para-cli
+para-cli setup
+para-cli ping
 ```
 
 ## Usage
@@ -41,6 +41,7 @@ $ para-cli ping
 	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
 	  apps                                   Returns a list of all Para apps
 	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests.
+	  endpoints [add|remove]                 List and select Para server endpoints, add new or remove an exiting one.
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
@@ -83,6 +84,9 @@ $ para-cli ping
 	  $ para-cli search "*" --type article --page all
 	  $ para-cli new-key
 	  $ para-cli new-app "mynewapp" --name "Full app name"
+	  $ para-cli apps
+	  $ para-cli select scoold
+	  $ para-cli endpoints
 
 ```
 
@@ -95,7 +99,7 @@ The plan is to add more functionality in the near future.
 
 **Quick start:**
 ```
-$ para-cli setup
+para-cli setup
 ```
 
 The configuration file is located in `~/.config/para-cli-nodejs/config.json` and contains the keys used to authenticate
@@ -115,12 +119,32 @@ Here's an example `config.json` file:
 Once configured you can test your connection to the server:
 
 ```
-$ para-cli ping
+para-cli ping
 ```
 
 To get the currently authenticated app/user object run:
 ```
-$ para-cli me
+para-cli me
+```
+
+## Switching between apps and endpoints
+
+Para CLI can be configured to work with multiple Para servers and apps. Here's how to add additional Para server endpoints:
+```
+para-cli endpoints add
+```
+To select a specific endpoint run:
+```
+para-cli endpoints
+```
+
+After selecting the Para server you wish to connect to, you can list and select apps within it:
+```
+para-cli apps
+```
+Select the 'scoold' app, for example:
+```
+para-cli select scoold
 ```
 
 ## Para Docs
