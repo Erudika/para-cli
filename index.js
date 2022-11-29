@@ -38,6 +38,7 @@ import { globbySync } from 'globby';
 import chalk from 'chalk';
 import { Promise } from 'rsvp';
 import apiClient from 'superagent';
+import { URL } from 'url';
 import { ParaClient, ParaObject, Pager } from 'para-client-js';
 
 const { cyan, red, yellow, green } = chalk;
@@ -516,6 +517,11 @@ export function addEndpoint(config) {
 		output: process.stdout
 	});
 	rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
+		if (!isValidUrl(endpoint)) {
+			fail('Endpoint must be a valid URL.');
+			rl.close();
+			return;
+		}
 		rl.question(cyan.bold('Para Secret Key (for root app app:para): '), function (secretKey) {
 			var pc = new ParaClient("app:para", secretKey, {endpoint: endpoint});
 			var endpoints = config.get('endpoints') || [];
@@ -714,6 +720,15 @@ function parseHTML(file) {
 		url: url,
 		text: (text || '').replace(/[\s]+/gi, ' ')
 	};
+}
+
+function isValidUrl(url) {
+	try {
+		new URL(url);
+		return true;
+	} catch (err) {
+		return false;
+	}
 }
 
 function readFile(filePath) {
