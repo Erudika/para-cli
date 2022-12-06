@@ -52,6 +52,7 @@ para-cli ping
 	  new-key                                Generates a new secret key and saves it to config.json
 	  new-jwt                                Generates a new JWT super token to be used for app authentication
 	  new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
+	  delete-app <id>                        Deletes an existing Para app. Only works for child apps, not the "root" app
 	  export                                 Exports all data from the app's table
 	  import <file>                          Imports data from a previously exported ZIP archive
 	  ping                                   Tests the connection to the Para server

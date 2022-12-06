@@ -29,7 +29,7 @@ import chalk from 'chalk';
 import meow from 'meow';
 import {
 	defaultConfig, setup, listApps, selectEndpoint, addEndpoint, removeEndpoint, selectApp, createAll, readAll,
-	updateAll, deleteAll, search, newKeys, newJWT, newApp, ping, me, appSettings, rebuildIndex, exportData, importData
+	updateAll, deleteAll, search, newKeys, newJWT, newApp, deleteApp, ping, me, appSettings, rebuildIndex, exportData, importData
 } from './index.js';
 
 const { red, green, blue } = chalk;
@@ -54,6 +54,7 @@ var cli = meow(`
 	  new-key                                Generates a new secret key and saves it to config.json
 	  new-jwt                                Generates a new JWT super token to be used for app authentication
 	  new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
+	  delete-app <id>                        Deletes an existing Para app. Only works for child apps, not the "root" app
 	  export                                 Exports all data from the app's table
 	  import <file>                          Imports data from a previously exported ZIP archive
 	  ping                                   Tests the connection to the Para server
@@ -182,6 +183,10 @@ if (!input[0]) {
 
 	if (input[0] === 'new-app') {
 		newApp(pc, input, flags);
+	}
+
+	if (input[0] === 'delete-app') {
+		deleteApp(pc, input, flags);
 	}
 
 	if (input[0] === 'ping') {

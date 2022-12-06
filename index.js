@@ -303,6 +303,36 @@ export function newApp(pc, input, flags) {
 	});
 }
 
+export function deleteApp(pc, input, flags) {
+	if (!input[1]) {
+		fail('App id not specified.');
+		return;
+	}
+	var appid = input[1];
+	if (appid.indexOf('app:') < 0) {
+		appid = 'app:' + appid;
+	}
+	var rl = createInterface({
+		input: process.stdin,
+		output: process.stdout
+	});
+	rl.question(red.bold('Are you sure you want to delete ' + appid +
+			'? ALL DATA FOR THAT APP WILL BE LOST! ') + 'yes/No ', function (confirm) {
+		if (confirm === "yes") {
+			pc.invokeDelete('apps/' + appid, {}).then(function (resp) {
+				if (resp && resp.ok) {
+					console.log(green('✔'), 'App ' + red.bold(appid) + ' was deleted!');
+				} else {
+					console.log(green('✔'), yellow('App "' + appid + '" could not be deleted.'));
+				}
+			}).catch(function (err) {
+				fail('Failed to delete app:', err);
+			});
+		}
+		rl.close();
+	});
+}
+
 export function ping(pc, config) {
 	pc.me().then(function (mee) {
 		pc.getServerVersion().then(function (ver) {
