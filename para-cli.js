@@ -28,7 +28,7 @@ import figlet from 'figlet';
 import chalk from 'chalk';
 import meow from 'meow';
 import {
-	defaultConfig, setup, listApps, selectEndpoint, addEndpoint, removeEndpoint, selectApp, createAll, readAll,
+	defaultConfig, setup, listApps, parseEndpoint, selectEndpoint, addEndpoint, removeEndpoint, selectApp, createAll, readAll,
 	updateAll, deleteAll, search, newKeys, newJWT, newApp, deleteApp, ping, me, appSettings, rebuildIndex, exportData, importData
 } from './index.js';
 
@@ -129,7 +129,7 @@ if (!input[0]) {
 	process.exitCode = 1;
 	setup(config);
 } else {
-	var pc = new ParaClient(accessKey, secretKey, { endpoint: endpoint });
+	var pc = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
 
 	if (input[0] === 'setup') {
 		setup(config);

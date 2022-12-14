@@ -61,7 +61,7 @@ export function setup(config) {
 				var secret = (secretKey || config.get('secretKey')).trim();
 				var endpoint = (endpoint || config.get('endpoint')).trim();
 				newJWT(access, secret, endpoint, config);
-				var pc = new ParaClient(access, secret, { endpoint: endpoint || defaultConfig.endpoint });
+				var pc = new ParaClient(access, secret, parseEndpoint(endpoint || defaultConfig.endpoint));
 				ping(pc, config);
 				if (access === 'app:para') {
 					listApps(config, {}, access, function () {
@@ -462,7 +462,7 @@ export function listApps(config, flags, parentAccessKey, failureCallback) {
 	var accessKey = selectedEndpoint.accessKey;
 	var secretKey = selectedEndpoint.secretKey;
 	var endpoint = selectedEndpoint.endpoint;
-	var pc = new ParaClient(accessKey, secretKey, {endpoint: endpoint});
+	var pc = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
 	var p = new Pager();
 	var results = [];
 	p.sortby = '_docid';
@@ -503,7 +503,7 @@ export function selectApp(input, config, flags) {
 			appid: accessKey,
 			getCredentials: selectedApp
 		}), secretKey, { algorithm: 'HS256' });
-		var paraClient = new ParaClient(accessKey, secretKey, { endpoint: endpoint });
+		var paraClient = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
 		paraClient.setAccessToken(jwt);
 		paraClient.me(jwt).then(function (data) {
 			if (data && data.credentials) {
@@ -553,7 +553,7 @@ export function addEndpoint(config) {
 			return;
 		}
 		rl.question(cyan.bold('Para Secret Key (for root app app:para): '), function (secretKey) {
-			var pc = new ParaClient("app:para", secretKey, {endpoint: endpoint});
+			var pc = new ParaClient("app:para", secretKey, parseEndpoint(endpoint));
 			var endpoints = config.get('endpoints') || [];
 			var existing = false;
 			for (var i = 0; i < endpoints.length; i++) {
@@ -620,6 +620,19 @@ export function selectEndpoint(config, flags) {
 		console.log("Selected endpoint: " + cyan(list[selectedEndpoint].endpoint));
 		rl.close();
 	});
+}
+
+export function parseEndpoint(endpoint) {
+	try {
+		var url = new URL(endpoint);
+		if (url.pathname !== '/') {
+			var x = { endpoint: url.protocol + '//' + url.host, apiPath: url.pathname.replace(/\/*$/, '') + '/v1/' };
+			return x;
+		}
+	} catch (e) {
+		fail('Invalid Para endpoint:', endpoint);
+	}
+	return { endpoint: endpoint };
 }
 
 function getSelectedEndpoint(config, flags) {
