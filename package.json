@@ -36,7 +36,7 @@
     "get-stdin": "^9.0.0",
     "globby": "^13.1.2",
     "htmlparser2": "^8.0.1",
-    "jsonwebtoken": "^8.5.1",
+    "jsonwebtoken": "^9.0.0",
     "meow": "^11.0.0",
     "mime-types": "^2.1.35",
     "para-client-js": "^1.38.0",
