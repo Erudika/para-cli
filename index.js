@@ -59,9 +59,9 @@ export function setup(config) {
 			rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
 				var access = (accessKey || config.get('accessKey') || "app:para").trim();
 				var secret = (secretKey || config.get('secretKey')).trim();
-				var endpoint = (endpoint || config.get('endpoint')).trim();
+				var endpoint = (endpoint || defaultConfig.endpoint).trim();
 				newJWT(access, secret, endpoint, config);
-				var pc = new ParaClient(access, secret, parseEndpoint(endpoint || defaultConfig.endpoint));
+				var pc = new ParaClient(access, secret, parseEndpoint(endpoint));
 				ping(pc, config);
 				if (access === 'app:para') {
 					listApps(config, {}, access, function () {
@@ -630,7 +630,7 @@ export function parseEndpoint(endpoint) {
 			return x;
 		}
 	} catch (e) {
-		fail('Invalid Para endpoint:', endpoint);
+		fail('Invalid Para endpoint: ' + endpoint, e);
 	}
 	return { endpoint: endpoint };
 }

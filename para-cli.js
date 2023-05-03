@@ -118,12 +118,12 @@ var selectedApp = config.get('selectedApp');
 if (!flags.accessKey && !flags.secretKey && selectedApp && selectedApp.accessKey && selectedApp.accessKey.indexOf("app:") === 0) {
 	accessKey = selectedApp.accessKey;
 	secretKey = selectedApp.secretKey;
-	endpoint = selectedApp.endpoint;
+	endpoint = selectedApp.endpoint || endpoint;
 }
 
 if (!input[0]) {
 	console.log(help);
-} else if (!accessKey || !secretKey) {
+} else if ((!accessKey || !secretKey) && input[0] !== 'setup') {
 	console.error(red('Command ' + input[0] + ' failed! Blank credentials, running setup first...'));
 	console.log("Please enter the access key and secret key for the root app 'app:para' first.");
 	process.exitCode = 1;
