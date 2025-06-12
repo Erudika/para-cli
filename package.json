@@ -28,7 +28,7 @@
   },
   "repository": "Erudika/para-cli",
   "dependencies": {
-    "brace-expansion": "^4.0.0",
+    "brace-expansion": "^4.0.1",
     "chalk": "^5.4.1",
     "conf": "^13.1.0",
     "exit": "^0.1.2",
