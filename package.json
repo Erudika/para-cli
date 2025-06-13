@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.21.2",
+  "version": "1.21.3",
   "license": "Apache-2.0",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
