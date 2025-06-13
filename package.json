@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.21.3",
+  "version": "1.21.4",
   "license": "Apache-2.0",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
@@ -15,7 +15,9 @@
     "para-cli.js",
     "index.js"
   ],
-  "bin": "para-cli.js",
+  "bin": {
+    "para-cli": "para-cli.js"
+  },
   "keywords": [
     "para",
     "backend",
@@ -26,7 +28,10 @@
   "devDependencies": {
     "eslint": "^9.28.0"
   },
-  "repository": "Erudika/para-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Erudika/para-cli.git"
+  },
   "dependencies": {
     "brace-expansion": "^4.0.1",
     "chalk": "^5.4.1",
