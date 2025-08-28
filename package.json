@@ -34,7 +34,7 @@
   },
   "dependencies": {
     "brace-expansion": "^4.0.1",
-    "chalk": "^5.4.1",
+    "chalk": "^5.5.0",
     "conf": "^14.0.0",
     "exit": "^0.1.2",
     "figlet": "^1.8.2",
