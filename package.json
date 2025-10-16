@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.21.5",
+  "version": "1.21.6",
   "license": "Apache-2.0",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
@@ -26,7 +26,7 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^9.32.0"
+    "eslint": "^9.37.0"
   },
   "repository": {
     "type": "git",
@@ -34,15 +34,15 @@
   },
   "dependencies": {
     "brace-expansion": "^4.0.1",
-    "chalk": "^5.4.1",
-    "conf": "^14.0.0",
+    "chalk": "^5.6.2",
+    "conf": "^15.0.2",
     "exit": "^0.1.2",
-    "figlet": "^1.8.2",
+    "figlet": "^1.9.3",
     "get-stdin": "^9.0.0",
-    "globby": "^14.1.0",
+    "globby": "^15.0.0",
     "htmlparser2": "^10.0.0",
     "jsonwebtoken": "^9.0.2",
-    "meow": "^13.2.0",
+    "meow": "^14.0.0",
     "mime-types": "^3.0.1",
     "para-client-js": "^1.39.7",
     "resolve": "^1.22.10",
