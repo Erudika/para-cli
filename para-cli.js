@@ -28,8 +28,9 @@ import figlet from 'figlet';
 import chalk from 'chalk';
 import meow from 'meow';
 import {
-	defaultConfig, setup, listApps, parseEndpoint, selectEndpoint, addEndpoint, removeEndpoint, selectApp, createAll, readAll,
-	updateAll, deleteAll, search, newKeys, newJWT, newApp, deleteApp, ping, me, appSettings, rebuildIndex, exportData, importData
+	defaultConfig, setup, listApps, parseEndpoint, selectEndpoint, addEndpoint, removeEndpoint,
+	selectApp, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, deleteApp,
+	ping, me, appSettings, rebuildIndex, exportData, importData, types
 } from './index.js';
 
 const { red, green, blue } = chalk;
@@ -42,6 +43,7 @@ var cli = meow(`
 	Commands:
 	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
 	  apps                                   Returns a list of all Para apps
+	  types                                  Returns an object containing all currently defined data types in Para
 	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests.
 	  endpoints [add|remove]                 List and select Para server endpoints, add new or remove an exiting one.
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
@@ -88,6 +90,7 @@ var cli = meow(`
 	  $ para-cli new-key
 	  $ para-cli new-app "mynewapp" --name "Full app name"
 	  $ para-cli apps
+	  $ para-cli types
 	  $ para-cli select scoold
 	  $ para-cli endpoints
 `, {
@@ -211,6 +214,10 @@ if (!input[0]) {
 
 	if (input[0] === 'import') {
 		importData(pc, input, config);
+	}
+
+	if (input[0] === 'types') {
+		types(pc, config);
 	}
 }
 

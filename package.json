@@ -26,7 +26,7 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^9.39.1"
+    "eslint": "^9.39.2"
   },
   "repository": {
     "type": "git",
@@ -39,12 +39,12 @@
     "exit": "^0.1.2",
     "figlet": "^1.9.4",
     "get-stdin": "^9.0.0",
-    "globby": "^16.0.0",
+    "globby": "^16.1.0",
     "htmlparser2": "^10.0.0",
     "jsonwebtoken": "^9.0.3",
     "meow": "^14.0.0",
     "mime-types": "^3.0.2",
-    "para-client-js": "^1.39.10",
+    "para-client-js": "^1.40.0",
     "resolve": "^1.22.11",
     "striptags": "^3.2.0",
     "update-notifier": "^7.3.1",

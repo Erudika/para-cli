@@ -36,7 +36,6 @@ import jsonwebtoken from 'jsonwebtoken';
 import { lookup } from 'mime-types';
 import { globbySync } from 'globby';
 import chalk from 'chalk';
-import { Promise } from 'rsvp';
 import apiClient from 'superagent';
 import { URL } from 'url';
 import { ParaClient, ParaObject, Pager } from 'para-client-js';
@@ -352,6 +351,14 @@ export function ping(pc, config) {
 export function me(pc, config) {
 	pc.me().then(function (mee) {
 		console.log(JSON.stringify(mee, null, 2));
+	}).catch(function () {
+		fail('Connection failed. Server might be down. Check the configuration file', yellow(config.path));
+	});
+}
+
+export function types(pc, config) {
+	const types = pc.getEntity(pc.invokeGet("_types")).then(function (data) {
+		console.log(JSON.stringify(data, null, 2));
 	}).catch(function () {
 		fail('Connection failed. Server might be down. Check the configuration file', yellow(config.path));
 	});
