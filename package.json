@@ -1,6 +1,6 @@
 {
   "name": "para-cli",
-  "version": "1.22.1",
+  "version": "1.22.2",
   "license": "Apache-2.0",
   "description": "Command-line tool for Para backend servers",
   "homepage": "https://paraio.org",
@@ -44,7 +44,7 @@
     "jsonwebtoken": "^9.0.3",
     "meow": "^14.0.0",
     "mime-types": "^3.0.2",
-    "para-client-js": "^1.40.1",
+    "para-client-js": "^1.40.2",
     "resolve": "^1.22.11",
     "striptags": "^3.2.0",
     "update-notifier": "^7.3.1",
