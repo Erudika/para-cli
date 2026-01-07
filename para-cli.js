@@ -44,8 +44,8 @@ var cli = meow(`
 	  setup                                  Initial setup, prompts you to enter your Para API keys and endpoint
 	  apps                                   Returns a list of all Para apps
 	  types                                  Returns an object containing all currently defined data types in Para
-	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests.
-	  endpoints [add|remove]                 List and select Para server endpoints, add new or remove an exiting one.
+	  select <appid>                         Selects a Para app as a target for all subsequent read/write requests
+	  endpoints [add|remove]                 List and select Para server endpoints, add new or remove an exiting one
 	  create <file|glob> [--id] [--type]     Persists files as Para objects and makes them searchable
 	  read --id 123 [--id 345 ...]           Fetches objects with the given ids
 	  update <file.json|glob> ...            Updates Para objects with the data from a JSON file (must contain id field)
@@ -54,9 +54,9 @@ var cli = meow(`
 	  rebuild-index                          Rebuilds the entire search index
 	  app-settings                           Returns all settings for the authenticated app
 	  new-key                                Generates a new secret key and saves it to config.json
-	  new-jwt                                Generates a new JWT super token to be used for app authentication
-	  new-app <name> --name --shared         Creates a new Para app. Only works if you have the keys for the "root" app
-	  delete-app <id>                        Deletes an existing Para app. Only works for child apps, not the "root" app
+	  new-jwt                                Generates a new JWT super token to be used for app authentication (use --print for console output)
+	  new-app <name> --name --shared         Creates a new Para app (only works if you have the keys for the "root" app)
+	  delete-app <id>                        Deletes an existing Para app (only works for child apps, not the "root" app)
 	  export                                 Exports all data from the app's table
 	  import <file>                          Imports data from a previously exported ZIP archive
 	  ping                                   Tests the connection to the Para server
@@ -75,7 +75,7 @@ var cli = meow(`
 	  --limit         Limits the number of search results
 	  --lastKey       Sets the last id for search-after pagination
 	  --cwd           Sets the current directory - used for resolving file paths
-	  --encodeId      By default all ids are Base64 encoded, unless this is 'false'
+	  --encodeId      By default all ids are Base64 encoded, unless this is set to 'false'
 	  --help          Prints the list of commands
 	  --version       Prints the version of the program
 
@@ -89,6 +89,7 @@ var cli = meow(`
 	  $ para-cli search "*" --type article --page all
 	  $ para-cli new-key
 	  $ para-cli new-app "mynewapp" --name "Full app name"
+	  $ para-cli new-jwt --print
 	  $ para-cli apps
 	  $ para-cli types
 	  $ para-cli select scoold
@@ -181,7 +182,7 @@ if (!input[0]) {
 	}
 
 	if (input[0] === 'new-jwt') {
-		newJWT(accessKey, secretKey, endpoint, config);
+		newJWT(accessKey, secretKey, endpoint, config, flags);
 	}
 
 	if (input[0] === 'new-app') {

@@ -262,7 +262,7 @@ export function newKeys(pc, config) {
 	});
 }
 
-export function newJWT(accessKey, secretKey, endpoint, config) {
+export function newJWT(accessKey, secretKey, endpoint, config, flags) {
 	if (!accessKey || accessKey.length < 3 || !secretKey || secretKey.length < 6) {
 		fail('Invalid credentials.');
 		return;
@@ -279,7 +279,11 @@ export function newJWT(accessKey, secretKey, endpoint, config) {
 	config.set('secretKey', secretKey);
 	config.set('endpoint', endpoint || config.get('endpoint'));
 	config.set('jwt', sign(sClaim, secretKey, { algorithm: 'HS256' }));
-	console.log(green('✔'), 'New JWT generated and saved in', yellow(config.path));
+	if (flags.print) {
+		console.log(yellow(config.get('jwt')));
+	} else {
+		console.log(green('✔'), 'New JWT generated and saved in', yellow(config.path));
+	}
 }
 
 export function newApp(pc, input, flags) {
@@ -507,6 +511,7 @@ export function selectApp(input, config, flags) {
 		var jwt = sign(JSON.stringify({
 			iat: now,
 			exp: now + 10,
+			nbf: now - 5, // allow for 5 seconds time difference in clocks
 			appid: accessKey,
 			getCredentials: selectedApp
 		}), secretKey, { algorithm: 'HS256' });
