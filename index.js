@@ -275,8 +275,15 @@ export function newJWT(accessKey, secretKey, endpoint, config, flags) {
 		nbf: now - 5, // allow for 5 seconds time difference in clocks
 		appid: accessKey
 	});
-	config.set('accessKey', accessKey);
-	config.set('secretKey', secretKey);
+	var selectedApp = config.get('selectedApp');
+	if (selectedApp && selectedApp.secretKey) {
+		selectedApp.accessKey = accessKey;
+		selectedApp.secretKey = secretKey;
+		config.set('selectedApp', selectedApp);
+	} else {
+		config.set('accessKey', accessKey);
+		config.set('secretKey', secretKey);
+	}
 	config.set('endpoint', endpoint || config.get('endpoint'));
 	config.set('jwt', sign(sClaim, secretKey, { algorithm: 'HS256' }));
 	if (flags.print) {
