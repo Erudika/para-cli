@@ -2,7 +2,7 @@
 
 # Para Command-Line Interface (CLI)
 
-[![NPM version][npm-image]][npm-url]
+[![NPM version][https://badge.fury.io/js/para-cli.svg]][https://npmjs.org/package/para-cli]
 [![Join the chat at https://gitter.im/Erudika/para](https://badges.gitter.im/Erudika/para.svg)](https://gitter.im/Erudika/para?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 ## What is this?
@@ -165,11 +165,3 @@ For more information see [CONTRIBUTING.md](https://github.com/Erudika/para/blob/
 
 ## License
 [Apache 2.0](LICENSE)
-
-
-[npm-image]: https://badge.fury.io/js/para-cli.svg
-[npm-url]: https://npmjs.org/package/para-cli
-[travis-image]: https://travis-ci.org/Erudika/para-cli.svg?branch=master
-[travis-url]: https://travis-ci.org/Erudika/para-cli
-[daviddm-image]: https://david-dm.org/Erudika/para-cli.svg?theme=shields.io
-[daviddm-url]: https://david-dm.org/Erudika/para-cli
