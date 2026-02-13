@@ -26,25 +26,25 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^9.39.2"
+    "eslint": "^10.0.0"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Erudika/para-cli.git"
   },
   "dependencies": {
-    "brace-expansion": "^4.0.1",
+    "brace-expansion": "^5.0.2",
     "chalk": "^5.6.2",
-    "conf": "^15.0.2",
+    "conf": "^15.1.0",
     "exit": "^0.1.2",
-    "figlet": "^1.9.4",
-    "get-stdin": "^9.0.0",
+    "figlet": "^1.10.0",
+    "get-stdin": "^10.0.0",
     "globby": "^16.1.0",
-    "htmlparser2": "^10.0.0",
+    "htmlparser2": "^10.1.0",
     "jsonwebtoken": "^9.0.3",
     "meow": "^14.0.0",
     "mime-types": "^3.0.2",
-    "para-client-js": "^1.40.3",
+    "para-client-js": "^1.40.4",
     "resolve": "^1.22.11",
     "striptags": "^3.2.0",
     "update-notifier": "^7.3.1",
