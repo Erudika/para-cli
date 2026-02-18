@@ -131,12 +131,12 @@ if (!input[0]) {
 	console.error(red('Command ' + input[0] + ' failed! Blank credentials, running setup first...'));
 	console.log("Please enter the access key and secret key for the root app 'app:para' first.");
 	process.exitCode = 1;
-	setup(config);
+	await setup(config);
 } else {
 	var pc = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
 
 	if (input[0] === 'setup') {
-		setup(config);
+		await setup(config);
 	}
 
 	if (input[0] === 'apps') {
@@ -221,4 +221,3 @@ if (!input[0]) {
 		types(pc, config);
 	}
 }
-

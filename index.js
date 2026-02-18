@@ -32,6 +32,7 @@ var encoder = new TextEncoder('utf-8');
 import striptags from 'striptags';
 import { Parser } from 'htmlparser2';
 import { createInterface } from 'readline';
+import { Writable } from 'stream';
 import jsonwebtoken from 'jsonwebtoken';
 import { lookup } from 'mime-types';
 import { globbySync } from 'globby';
@@ -48,14 +49,28 @@ var defaultConfig = { accessKey: '', secretKey: '', endpoint: 'https://paraio.co
 const _defaultConfig = defaultConfig;
 export { _defaultConfig as defaultConfig };
 
-export function setup(config) {
+export async function setup(config) {
+	var secretPrompt = cyan.bold('Para Secret Key: ');
+	var mutableStdout = new Writable({
+		write: function (chunk, encoding, callback) {
+			if (!this.muted || (chunk.toString() === secretPrompt))
+				process.stdout.write(chunk, encoding);
+			else if (this.muted && chunk.length === 1)
+				process.stdout.write(Buffer.from("*".repeat(Math.random() * 5)), encoding);
+			callback();
+		}
+	});
 	var rl = createInterface({
 		input: process.stdin,
-		output: process.stdout
+		output: mutableStdout,
+		terminal: true
 	});
+	mutableStdout.muted = false;
 	rl.question(cyan.bold('Para Access Key: '), function (accessKey) {
-		rl.question(cyan.bold('Para Secret Key: '), function (secretKey) {
-			rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
+		mutableStdout.muted = true;
+		rl.question(secretPrompt, function (secretKey) {
+			mutableStdout.muted = false;
+			rl.question(cyan.bold('Para Endpoint (Press enter for ' + defaultConfig.endpoint + '): '), function (endpoint) {
 				var access = (accessKey || config.get('accessKey') || "app:para").trim();
 				var secret = (secretKey || config.get('secretKey')).trim();
 				var endpoint = (endpoint || defaultConfig.endpoint).trim();
@@ -286,7 +301,7 @@ export function newJWT(accessKey, secretKey, endpoint, config, flags) {
 	}
 	config.set('endpoint', endpoint || config.get('endpoint'));
 	config.set('jwt', sign(sClaim, secretKey, { algorithm: 'HS256' }));
-	if (flags.print) {
+	if (flags && flags.print) {
 		console.log(yellow(config.get('jwt')));
 	} else {
 		console.log(green('✔'), 'New JWT generated and saved in', yellow(config.path));
