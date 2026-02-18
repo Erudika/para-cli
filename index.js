@@ -93,6 +93,7 @@ export async function setup(config) {
 						});
 					});
 				}
+				rl.close();
 			});
 		});
 	});
@@ -505,8 +506,8 @@ export function listApps(config, flags, parentAccessKey, failureCallback) {
 	}).then(function () {
 		var apps = results.map(function (app) {return app.appIdentifier.trim();});
 		if (apps.length) {
-			console.log('Found', p.count, 'apps on ' + cyan(endpoint) + ':', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
-			console.log('Typing', cyan('para-cli select'), green(apps[0]), 'will switch to that app. Current app:',
+			console.log('Found', p.count, 'apps on ' + cyan(endpoint) + ':\n', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
+			console.log('\nTyping', cyan('para-cli select'), green(apps[0]), 'will switch to that app. \nCurrent app:',
 				green(parentAccessKey));
 			process.exit(0);
 		} else {
