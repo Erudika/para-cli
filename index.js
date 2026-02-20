@@ -138,7 +138,7 @@ export function createAll(pc, input, flags) {
 			}
 
 			if (flags.sanitize) {
-				json.text = json.text.replace(/^[0-9\p{L}\s]+/giu, ' ').replace(/[\s]+/gi, ' ');
+				json.text = json.text.replace(/[^0-9\p{L}]+/giu, ' ').replace(/[\s]+/gi, ' ');
 			}
 
 			id = (i === 0 && flags.id) ? flags.id : (json.url || filePath);
@@ -783,7 +783,7 @@ function parseHTML(file) {
 		},
 		ontext: function (txt) {
 			if (!inScript && !inAnchor) {
-				text += txt;
+				text += ' ' + txt;
 			}
 		},
 		onclosetag: function () {
@@ -796,7 +796,7 @@ function parseHTML(file) {
 	return {
 		name: title,
 		url: url,
-		text: (text || '').replace(/[\s]+/gi, ' ')
+		text: (text || ' ').replace(/[\s]+/gi, ' ')
 	};
 }
 
