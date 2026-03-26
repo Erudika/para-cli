@@ -26,28 +26,41 @@
     "api"
   ],
   "devDependencies": {
-    "eslint": "^10.0.3"
+    "eslint": "^10.1.0",
+    "release-it": "^19.2.4"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/Erudika/para-cli.git"
   },
   "dependencies": {
-    "brace-expansion": "^5.0.4",
+    "brace-expansion": "^5.0.5",
     "chalk": "^5.6.2",
     "conf": "^15.1.0",
     "exit": "^0.1.2",
     "figlet": "^1.11.0",
     "get-stdin": "^10.0.0",
     "globby": "^16.1.1",
-    "htmlparser2": "^10.1.0",
+    "htmlparser2": "^12.0.0",
     "jsonwebtoken": "^9.0.3",
     "meow": "^14.1.0",
     "mime-types": "^3.0.2",
-    "para-client-js": "^1.40.4",
+    "para-client-js": "^1.40.6",
     "resolve": "^1.22.11",
     "striptags": "^3.2.0",
     "update-notifier": "^7.3.1",
     "yargs-parser": "^22.0.0"
+  },
+  "scripts": {
+    "release": "release-it"
+  },
+  "release-it": {
+    "$schema": "https://unpkg.com/release-it/schema/release-it.json",
+    "github": {
+      "release": true
+    },
+    "npm": {
+      "publish": true
+    }
   }
 }
