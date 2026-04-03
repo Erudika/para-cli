@@ -22,7 +22,6 @@
 /* eslint object-curly-spacing: ["error", "always"] */
 
 import updateNotifier from 'update-notifier';
-import ParaClient from 'para-client-js';
 import Conf from 'conf';
 import figlet from 'figlet';
 import chalk from 'chalk';
@@ -133,8 +132,6 @@ if (!input[0]) {
 	process.exitCode = 1;
 	await setup(config);
 } else {
-	var pc = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
-
 	if (input[0] === 'setup') {
 		await setup(config);
 	}
@@ -158,27 +155,27 @@ if (!input[0]) {
 	}
 
 	if (input[0] === 'create') {
-		createAll(pc, input, flags);
+		createAll(input, config, flags);
 	}
 
 	if (input[0] === 'read') {
-		readAll(pc, flags);
+		readAll(config, flags);
 	}
 
 	if (input[0] === 'update') {
-		updateAll(pc, input, flags);
+		updateAll(input, config, flags);
 	}
 
 	if (input[0] === 'delete') {
-		deleteAll(pc, input, flags);
+		deleteAll(input, config, flags);
 	}
 
 	if (input[0] === 'search') {
-		search(pc, input, flags);
+		search(input, config, flags);
 	}
 
 	if (input[0] === 'new-key') {
-		newKeys(pc, config);
+		newKeys(config, flags);
 	}
 
 	if (input[0] === 'new-jwt') {
@@ -186,38 +183,38 @@ if (!input[0]) {
 	}
 
 	if (input[0] === 'new-app') {
-		newApp(pc, input, flags);
+		newApp(input, config, flags);
 	}
 
 	if (input[0] === 'delete-app') {
-		deleteApp(pc, input, flags);
+		deleteApp(input, config, flags);
 	}
 
 	if (input[0] === 'ping') {
-		ping(pc, config);
+		ping(config, flags);
 	}
 
 	if (input[0] === 'me') {
-		me(pc, config);
+		me(config, flags);
 	}
 
 	if (input[0] === 'app-settings') {
-		appSettings(pc, config);
+		appSettings(config, flags);
 	}
 
 	if (input[0] === 'rebuild-index') {
-		rebuildIndex(pc, config, flags);
+		rebuildIndex(config, flags);
 	}
 
 	if (input[0] === 'export') {
-		exportData(pc, config, flags);
+		exportData(config, flags);
 	}
 
 	if (input[0] === 'import') {
-		importData(pc, input, config);
+		importData(input, config, flags);
 	}
 
 	if (input[0] === 'types') {
-		types(pc, config);
+		types(config, flags);
 	}
 }

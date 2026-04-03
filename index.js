@@ -71,8 +71,7 @@ export async function setup(config) {
 		var endpointValue = (endpoint || defaultConfig.endpoint).trim();
 
 		newJWT(access, secret, endpointValue, config);
-		var pc = new ParaClient(access, secret, parseEndpoint(endpointValue));
-		ping(pc, config);
+		ping(config);
 
 		if (access === 'app:para') {
 			listApps(config, {}, access, async function () {
@@ -87,7 +86,7 @@ export async function setup(config) {
 					const appname = await input({
 						message: 'App name:'
 					});
-					newApp(pc, ['', appname], {});
+					newApp(['', appname], config, {});
 				}
 			});
 		}
@@ -100,12 +99,13 @@ export async function setup(config) {
 	}
 }
 
-export function createAll(pc, input, flags) {
+export function createAll(input, config, flags = {}) {
 	if (!input[1]) {
 		fail('No files specified.');
 		return;
 	}
 
+	const pc = getClient(config, flags);
 	var files = globbySync(input[1], { realpath: true });
 	var totalSize = 0;
 	var totalObjects = 0;
@@ -194,7 +194,8 @@ export function createAll(pc, input, flags) {
 	console.log(green('✔'), 'Created', totalObjects, 'objects with a total size of', Math.round(totalSize / 1024), 'KB.');
 }
 
-export function readAll(pc, flags) {
+export function readAll(config, flags = {}) {
+	const pc = getClient(config, flags);
 	if (flags.id) {
 		var readIds = flags.id;
 		if (!(readIds instanceof Array)) {
@@ -211,12 +212,13 @@ export function readAll(pc, flags) {
 	}
 }
 
-export function updateAll(pc, input, flags) {
+export function updateAll(input, config, flags = {}) {
 	if (!input[1]) {
 		fail('No files specified.');
 		return;
 	}
 
+	const pc = getClient(config, flags);
 	var files = globbySync(input[1], { realpath: true });
 	var updateList = [];
 
@@ -249,7 +251,8 @@ export function updateAll(pc, input, flags) {
 	});
 }
 
-export function deleteAll(pc, input, flags) {
+export function deleteAll(input, config, flags = {}) {
+	const pc = getClient(config, flags);
 	if (flags.id || input[1]) {
 		var deleteIds = globbySync(input[1] || ' ', { realpath: true });
 		if (deleteIds.length === 0) {
@@ -270,7 +273,8 @@ export function deleteAll(pc, input, flags) {
 	}
 }
 
-export function newKeys(pc, config) {
+export function newKeys(config, flags = {}) {
+	const pc = getClient(config, flags);
 	pc.newKeys().then(function (keys) {
 		config.set('secretKey', keys.secretKey);
 		console.log(green('✔'), 'New JWT generated and saved in', yellow(config.path));
@@ -310,12 +314,13 @@ export function newJWT(accessKey, secretKey, endpoint, config, flags) {
 	}
 }
 
-export function newApp(pc, input, flags) {
+export function newApp(input, config, flags = {}) {
 	if (!input[1]) {
 		fail('App name not specified.');
 		return;
 	}
 
+	const pc = getClient(config, flags);
 	var appid = input[1];
 	var req = pc.invokeGet('_setup/' + appid, { name: (flags.name || appid), shared: (flags.shared || false) });
 	pc.getEntity(req).then(function (resp) {
@@ -330,12 +335,13 @@ export function newApp(pc, input, flags) {
 	});
 }
 
-export async function deleteApp(pc, input, flags) {
-	if (!input[1]) {
+export async function deleteApp(inputArgs, config, flags = {}) {
+	if (!inputArgs[1]) {
 		fail('App id not specified.');
 		return;
 	}
-	var appid = input[1];
+	const pc = getClient(config, flags);
+	var appid = inputArgs[1];
 	if (appid.indexOf('app:') < 0) {
 		appid = 'app:' + appid;
 	}
@@ -366,8 +372,8 @@ export async function deleteApp(pc, input, flags) {
 	}
 }
 
-export function ping(pc, config) {
-	console.log(">>>>>> ", pc.endpoint);
+export function ping(config, flags = {}) {
+	const pc = getClient(config, flags);
 	pc.me().then(function (mee) {
 		pc.getServerVersion().then(function (ver) {
 			console.log(green('✔'), 'Connected to Para server ' + cyan.bold('v' + ver),
@@ -383,7 +389,8 @@ export function ping(pc, config) {
 	});
 }
 
-export function me(pc, config) {
+export function me(config, flags = {}) {
+	const pc = getClient(config, flags);
 	pc.me().then(function (mee) {
 		console.log(JSON.stringify(mee, null, 2));
 	}).catch(function () {
@@ -391,7 +398,8 @@ export function me(pc, config) {
 	});
 }
 
-export function types(pc, config) {
+export function types(config, flags = {}) {
+	const pc = getClient(config, flags);
 	const types = pc.getEntity(pc.invokeGet("_types")).then(function (data) {
 		console.log(JSON.stringify(data, null, 2));
 	}).catch(function () {
@@ -399,7 +407,8 @@ export function types(pc, config) {
 	});
 }
 
-export function exportData(pc, config) {
+export function exportData(config, flags = {}) {
+	const pc = getClient(config, flags);
 	pc.invokeGet('/_export').then(function (data) {
 		try {
 			var filename = (data.headers['content-disposition'] || 'export.zip');
@@ -415,11 +424,12 @@ export function exportData(pc, config) {
 	});
 }
 
-export function importData(pc, input, config) {
+export function importData(input, config, flags = {}) {
 	if (!input[1]) {
 		fail('No file to import.');
 		return;
 	}
+	const pc = getClient(config, flags);
 	if (!config.get('jwt')) {
 		newJWT(config.get('accessKey'), config.get('secretKey'), config.get('endpoint'), config);
 	}
@@ -456,7 +466,8 @@ function promiseWhile(results, fn) {
 	});
 }
 
-export function search(pc, input, flags) {
+export function search(input, config, flags = {}) {
+	const pc = getClient(config, flags);
 	var p = new Pager(flags.page, flags.sort, flags.desc, flags.limit);
 	if (flags.lastKey) {
 		p.lastKey = flags.lastKey;
@@ -483,7 +494,8 @@ export function search(pc, input, flags) {
 	}
 }
 
-export function appSettings(pc, config) {
+export function appSettings(config, flags = {}) {
+	const pc = getClient(config, flags);
 	pc.appSettings().then(function (settings) {
 		console.log(JSON.stringify(settings, null, 2));
 	}).catch(function () {
@@ -491,7 +503,8 @@ export function appSettings(pc, config) {
 	});
 }
 
-export function rebuildIndex(pc, config, flags) {
+export function rebuildIndex(config, flags = {}) {
+	const pc = getClient(config, flags);
 	pc.rebuildIndex(flags.destinationIndex).then(function (response) {
 		console.log(JSON.stringify(response, null, 2));
 	}).catch(function (err) {
@@ -500,11 +513,8 @@ export function rebuildIndex(pc, config, flags) {
 }
 
 export function listApps(config, flags, parentAccessKey, failureCallback) {
+	var pc = getClient(config, flags);
 	var selectedEndpoint = getSelectedEndpoint(config, flags);
-	var accessKey = selectedEndpoint.accessKey;
-	var secretKey = selectedEndpoint.secretKey;
-	var endpoint = selectedEndpoint.endpoint;
-	var pc = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
 	var p = new Pager();
 	var results = [];
 	p.sortby = '_docid';
@@ -514,7 +524,7 @@ export function listApps(config, flags, parentAccessKey, failureCallback) {
 	}).then(function () {
 		var apps = results.map(function (app) {return app.appIdentifier.trim();});
 		if (apps.length) {
-			console.log('Found', p.count, 'apps on ' + cyan(endpoint) + ':\n', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
+			console.log('Found', p.count, 'apps on ' + cyan(selectedEndpoint.endpoint) + ':\n', yellow('[') + green(apps.join(yellow('] ['))) + yellow(']'));
 			console.log('\nTyping', cyan('para-cli select'), green(apps[0]), 'will switch to that app. \nCurrent app:',
 				green(parentAccessKey));
 			process.exit(0);
@@ -530,7 +540,6 @@ export function selectApp(input, config, flags) {
 	var selectedEndpoint = getSelectedEndpoint(config, flags);
 	var accessKey = selectedEndpoint.accessKey;
 	var secretKey = selectedEndpoint.secretKey;
-	var endpoint = selectedEndpoint.endpoint;
 	if (accessKey === 'app:para' && secretKey) {
 		var selectedApp = 'app:' + (input[1] || 'para').trim();
 		if (selectedApp === 'app:para') {
@@ -546,7 +555,7 @@ export function selectApp(input, config, flags) {
 			appid: accessKey,
 			getCredentials: selectedApp
 		}), secretKey, { algorithm: 'HS256' });
-		var paraClient = new ParaClient(accessKey, secretKey, parseEndpoint(endpoint));
+		var paraClient = getClient(config, flags);
 		paraClient.setAccessToken(jwt);
 		paraClient.me(jwt).then(function (data) {
 			if (data && data.credentials) {
@@ -599,7 +608,6 @@ export async function addEndpoint(config) {
 			mask: '*'
 		});
 
-		var pc = new ParaClient("app:para", secretKey, parseEndpoint(endpoint));
 		var endpoints = config.get('endpoints') || [];
 		var existing = false;
 		for (var i = 0; i < endpoints.length; i++) {
@@ -613,7 +621,7 @@ export async function addEndpoint(config) {
 			endpoints.push({accessKey: 'app:para', secretKey: secretKey, endpoint: endpoint});
 		}
 		config.set('endpoints', endpoints);
-		ping(pc, config);
+		ping(config);
 	} catch (error) {
 		if (error.name === 'ExitPromptError') {
 			console.log('\nAdd endpoint cancelled.');
@@ -707,6 +715,11 @@ function getSelectedEndpoint(config, flags) {
 		config.delete('selectedEndpoint');
 		return endpoints[0];
 	}
+}
+
+function getClient(config, flags = {}) {
+	var selectedEndpoint = getSelectedEndpoint(config, flags);
+	return new ParaClient(selectedEndpoint.accessKey, selectedEndpoint.secretKey, parseEndpoint(selectedEndpoint.endpoint));
 }
 
 function sendFileChunk(chunkId, textEncoded, json, id, flags, start, end, pc, decoder) {
