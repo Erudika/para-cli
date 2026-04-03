@@ -26,6 +26,7 @@
     "api"
   ],
   "devDependencies": {
+    "@biomejs/biome": "2.4.10",
     "eslint": "^10.1.0",
     "release-it": "^19.2.4"
   },
@@ -54,6 +55,12 @@
     "yargs-parser": "^22.0.0"
   },
   "scripts": {
+    "lint": "biome lint *.js",
+    "lint:fix": "biome lint --write *.js",
+    "format": "biome format --write *.js",
+    "format:check": "biome format *.js",
+    "check": "biome check *.js",
+    "check:fix": "biome check --write *.js",
     "release": "release-it"
   },
   "release-it": {

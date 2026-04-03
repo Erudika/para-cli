@@ -20,22 +20,44 @@
 
 /* eslint indent: ["error", "tab"] */
 /* eslint object-curly-spacing: ["error", "always"] */
+/* global console, process */
 
-import updateNotifier from 'update-notifier';
+import chalk from 'chalk';
 import Conf from 'conf';
 import figlet from 'figlet';
-import chalk from 'chalk';
 import meow from 'meow';
+import updateNotifier from 'update-notifier';
 import {
-	defaultConfig, setup, listApps, parseEndpoint, selectEndpoint, addEndpoint, removeEndpoint,
-	selectApp, createAll, readAll, updateAll, deleteAll, search, newKeys, newJWT, newApp, deleteApp,
-	ping, me, appSettings, rebuildIndex, exportData, importData, types
+	addEndpoint,
+	appSettings,
+	createAll,
+	defaultConfig,
+	deleteAll,
+	deleteApp,
+	exportData,
+	importData,
+	listApps,
+	me,
+	newApp,
+	newJWT,
+	newKeys,
+	ping,
+	readAll,
+	rebuildIndex,
+	removeEndpoint,
+	search,
+	selectApp,
+	selectEndpoint,
+	setup,
+	types,
+	updateAll
 } from './index.js';
 
 const { red, green, blue } = chalk;
 const { textSync } = figlet;
 
-var cli = meow(`
+var cli = meow(
+	`
 	Usage:
 	  $ para-cli [command] [file]
 
@@ -93,14 +115,16 @@ var cli = meow(`
 	  $ para-cli types
 	  $ para-cli select scoold
 	  $ para-cli endpoints
-`, {
-	importMeta: import.meta,
-	flags: {
-		id: {
-			type: 'string'
+`,
+	{
+		importMeta: import.meta,
+		flags: {
+			id: {
+				type: 'string'
+			}
 		}
 	}
-});
+);
 
 updateNotifier({ pkg: cli.pkg }).notify();
 
@@ -109,7 +133,7 @@ var config = new Conf({
 	defaults: defaultConfig
 });
 
-var logo = blue(textSync(' para CLI', { font: 'Slant' })) + '\n';
+var logo = `${blue(textSync(' para CLI', { font: 'Slant' }))}\n`;
 var help = logo + cli.help;
 var input = cli.input;
 var flags = cli.flags;
@@ -118,7 +142,7 @@ var secretKey = flags.secretKey || process.env.PARA_SECRET_KEY || config.get('se
 var endpoint = flags.endpoint || process.env.PARA_ENDPOINT || config.get('endpoint');
 var selectedApp = config.get('selectedApp');
 
-if (!flags.accessKey && !flags.secretKey && selectedApp && selectedApp.accessKey && selectedApp.accessKey.indexOf("app:") === 0) {
+if (!flags.accessKey && !flags.secretKey && selectedApp?.accessKey && selectedApp.accessKey.indexOf('app:') === 0) {
 	accessKey = selectedApp.accessKey;
 	secretKey = selectedApp.secretKey;
 	endpoint = selectedApp.endpoint || endpoint;
@@ -127,7 +151,7 @@ if (!flags.accessKey && !flags.secretKey && selectedApp && selectedApp.accessKey
 if (!input[0]) {
 	console.log(help);
 } else if ((!accessKey || !secretKey) && input[0] !== 'setup') {
-	console.error(red('Command ' + input[0] + ' failed! Blank credentials, running setup first...'));
+	console.error(red(`Command ${input[0]} failed! Blank credentials, running setup first...`));
 	console.log("Please enter the access key and secret key for the root app 'app:para' first.");
 	process.exitCode = 1;
 	await setup(config);
@@ -137,7 +161,9 @@ if (!input[0]) {
 	}
 
 	if (input[0] === 'apps') {
-		listApps(config, flags, accessKey, function () {console.log('No apps found within', green(accessKey));});
+		listApps(config, flags, accessKey, () => {
+			console.log('No apps found within', green(accessKey));
+		});
 	}
 
 	if (input[0] === 'endpoints') {
