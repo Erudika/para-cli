@@ -31,8 +31,6 @@ import { TextEncoder } from 'util';
 var encoder = new TextEncoder('utf-8');
 import striptags from 'striptags';
 import { Parser } from 'htmlparser2';
-import { createInterface } from 'readline';
-import { Writable } from 'stream';
 import jsonwebtoken from 'jsonwebtoken';
 import { lookup } from 'mime-types';
 import { globbySync } from 'globby';
@@ -40,6 +38,8 @@ import chalk from 'chalk';
 import apiClient from 'superagent';
 import { URL } from 'url';
 import { ParaClient, ParaObject, Pager } from 'para-client-js';
+import password from '@inquirer/password';
+import input from '@inquirer/input';
 
 const { cyan, red, yellow, green } = chalk;
 const { sign } = jsonwebtoken;
@@ -50,53 +50,54 @@ const _defaultConfig = defaultConfig;
 export { _defaultConfig as defaultConfig };
 
 export async function setup(config) {
-	var secretPrompt = cyan.bold('Para Secret Key: ');
-	var mutableStdout = new Writable({
-		write: function (chunk, encoding, callback) {
-			if (!this.muted || (chunk.toString() === secretPrompt))
-				process.stdout.write(chunk, encoding);
-			else if (this.muted && chunk.length === 1)
-				process.stdout.write(Buffer.from("*".repeat(Math.random() * 5)), encoding);
-			callback();
-		}
-	});
-	var rl = createInterface({
-		input: process.stdin,
-		output: mutableStdout,
-		terminal: true
-	});
-	mutableStdout.muted = false;
-	rl.question(cyan.bold('Para Access Key: '), function (accessKey) {
-		mutableStdout.muted = true;
-		rl.question(secretPrompt, function (secretKey) {
-			mutableStdout.muted = false;
-			rl.question(cyan.bold('Para Endpoint (Press enter for ' + defaultConfig.endpoint + '): '), function (endpoint) {
-				var access = (accessKey || config.get('accessKey') || "app:para").trim();
-				var secret = (secretKey || config.get('secretKey')).trim();
-				var endpoint = (endpoint || defaultConfig.endpoint).trim();
-				newJWT(access, secret, endpoint, config);
-				var pc = new ParaClient(access, secret, parseEndpoint(endpoint));
-				ping(pc, config);
-				if (access === 'app:para') {
-					listApps(config, {}, access, function () {
-						// if none, ask to create one
-						rl.question(cyan.bold('Would you like to create a new Para app? [Y/n] '), function (Yn) {
-							Yn = Yn.trim();
-							if ('' === Yn || 'y' === Yn || 'Y' === Yn) {
-								rl.question(cyan.bold('App name: '), function (appname) {
-									newApp(pc, ['', appname], {});
-									rl.close();
-								});
-							} else {
-								rl.close();
-							}
-						});
-					});
-				}
-				rl.close();
-			});
+	try {
+		const accessKey = await input({
+			message: 'Para Access Key:',
+			default: config.get('accessKey') || 'app:para'
 		});
-	});
+
+		const secretKey = await password({
+			message: 'Para Secret Key:',
+			mask: '*'
+		});
+
+		const endpoint = await input({
+			message: 'Para Endpoint:',
+			default: defaultConfig.endpoint
+		});
+
+		var access = (accessKey || config.get('accessKey') || "app:para").trim();
+		var secret = (secretKey || config.get('secretKey')).trim();
+		var endpointValue = (endpoint || defaultConfig.endpoint).trim();
+
+		newJWT(access, secret, endpointValue, config);
+		var pc = new ParaClient(access, secret, parseEndpoint(endpointValue));
+		ping(pc, config);
+
+		if (access === 'app:para') {
+			listApps(config, {}, access, async function () {
+				// if none, ask to create one
+				const shouldCreate = await input({
+					message: 'Would you like to create a new Para app? [Y/n]',
+					default: 'Y'
+				});
+
+				const Yn = shouldCreate.trim();
+				if ('' === Yn || 'y' === Yn.toLowerCase()) {
+					const appname = await input({
+						message: 'App name:'
+					});
+					newApp(pc, ['', appname], {});
+				}
+			});
+		}
+	} catch (error) {
+		if (error.name === 'ExitPromptError') {
+			console.log('\nSetup cancelled.');
+		} else {
+			throw error;
+		}
+	}
 }
 
 export function createAll(pc, input, flags) {
@@ -329,7 +330,7 @@ export function newApp(pc, input, flags) {
 	});
 }
 
-export function deleteApp(pc, input, flags) {
+export async function deleteApp(pc, input, flags) {
 	if (!input[1]) {
 		fail('App id not specified.');
 		return;
@@ -338,12 +339,13 @@ export function deleteApp(pc, input, flags) {
 	if (appid.indexOf('app:') < 0) {
 		appid = 'app:' + appid;
 	}
-	var rl = createInterface({
-		input: process.stdin,
-		output: process.stdout
-	});
-	rl.question(red.bold('Are you sure you want to delete ' + appid +
-			'? ALL DATA FOR THAT APP WILL BE LOST! ') + 'yes/No ', function (confirm) {
+
+	try {
+		const confirm = await input({
+			message: red.bold('Are you sure you want to delete ' + appid +
+				'? ALL DATA FOR THAT APP WILL BE LOST! ') + 'yes/No'
+		});
+
 		if (confirm === "yes") {
 			pc.invokeDelete('apps/' + appid, {}).then(function (resp) {
 				if (resp && resp.ok) {
@@ -355,11 +357,17 @@ export function deleteApp(pc, input, flags) {
 				fail('Failed to delete app:', err);
 			});
 		}
-		rl.close();
-	});
+	} catch (error) {
+		if (error.name === 'ExitPromptError') {
+			console.log('\nDelete cancelled.');
+		} else {
+			throw error;
+		}
+	}
 }
 
 export function ping(pc, config) {
+	console.log(">>>>>> ", pc.endpoint);
 	pc.me().then(function (mee) {
 		pc.getServerVersion().then(function (ver) {
 			console.log(green('✔'), 'Connected to Para server ' + cyan.bold('v' + ver),
@@ -526,7 +534,7 @@ export function selectApp(input, config, flags) {
 	if (accessKey === 'app:para' && secretKey) {
 		var selectedApp = 'app:' + (input[1] || 'para').trim();
 		if (selectedApp === 'app:para') {
-			config.delete('selectedApp');
+			config.set('selectedApp', selectedEndpoint);
 			console.log(green('✔'), 'Selected', green(selectedApp), 'as the current app.');
 			return;
 		}
@@ -575,47 +583,54 @@ export function listEndpoints(config, flags, failureCallback) {
 	return list;
 }
 
-export function addEndpoint(config) {
-	var endpoints = config.get('endpoints') || [];
-	var rl = createInterface({
-		input: process.stdin,
-		output: process.stdout
-	});
-	rl.question(cyan.bold('Para Endpoint: '), function (endpoint) {
+export async function addEndpoint(config) {
+	try {
+		const endpoint = await input({
+			message: 'Para Endpoint:'
+		});
+
 		if (!isValidUrl(endpoint)) {
 			fail('Endpoint must be a valid URL.');
-			rl.close();
 			return;
 		}
-		rl.question(cyan.bold('Para Secret Key (for root app app:para): '), function (secretKey) {
-			var pc = new ParaClient("app:para", secretKey, parseEndpoint(endpoint));
-			var endpoints = config.get('endpoints') || [];
-			var existing = false;
-			for (var i = 0; i < endpoints.length; i++) {
-				var ep = endpoints[i];
-				if (ep.endpoint === endpoint) {
-					ep.secretKey = secretKey;
-					existing = true;
-				}
-			}
-			if (!existing) {
-				endpoints.push({accessKey: 'app:para', secretKey: secretKey, endpoint: endpoint});
-			}
-			config.set('endpoints', endpoints);
-			ping(pc, config);
-			rl.close();
+
+		const secretKey = await password({
+			message: 'Para Secret Key (for root app app:para):',
+			mask: '*'
 		});
-	});
+
+		var pc = new ParaClient("app:para", secretKey, parseEndpoint(endpoint));
+		var endpoints = config.get('endpoints') || [];
+		var existing = false;
+		for (var i = 0; i < endpoints.length; i++) {
+			var ep = endpoints[i];
+			if (ep.endpoint === endpoint) {
+				ep.secretKey = secretKey;
+				existing = true;
+			}
+		}
+		if (!existing) {
+			endpoints.push({accessKey: 'app:para', secretKey: secretKey, endpoint: endpoint});
+		}
+		config.set('endpoints', endpoints);
+		ping(pc, config);
+	} catch (error) {
+		if (error.name === 'ExitPromptError') {
+			console.log('\nAdd endpoint cancelled.');
+		} else {
+			throw error;
+		}
+	}
 }
 
-export function removeEndpoint(config, flags) {
+export async function removeEndpoint(config, flags) {
 	var list = listEndpoints(config, flags, function () {console.log('No endpoints found.');});
-	var rl = createInterface({
-		input: process.stdin,
-		output: process.stdout
-	});
 
-	rl.question(yellow.bold('Type the number of the Para endpoint to remove: '), function (index) {
+	try {
+		const index = await input({
+			message: 'Type the number of the Para endpoint to remove:'
+		});
+
 		var selectedEndpoint = 0;
 		if (!isNaN(index) && index <= list.length && index >= 1) {
 			selectedEndpoint = index - 1;
@@ -635,17 +650,23 @@ export function removeEndpoint(config, flags) {
 			config.set('endpoints', list);
 		}
 		console.log("Removed endpoint: " + cyan(url));
-		rl.close();
-	});
+	} catch (error) {
+		if (error.name === 'ExitPromptError') {
+			console.log('\nRemove endpoint cancelled.');
+		} else {
+			throw error;
+		}
+	}
 }
 
-export function selectEndpoint(config, flags) {
+export async function selectEndpoint(config, flags) {
 	var list = listEndpoints(config, flags, function () {console.log('No endpoints found.');});
-	var rl = createInterface({
-		input: process.stdin,
-		output: process.stdout
-	});
-	rl.question(yellow.bold('Type the number of the Para endpoint to select: '), function (index) {
+
+	try {
+		const index = await input({
+			message: 'Type the number of the Para endpoint to select:'
+		});
+
 		var selectedEndpoint = 0;
 		if (!isNaN(index) && index <= list.length && index >= 1) {
 			selectedEndpoint = index - 1;
@@ -653,8 +674,13 @@ export function selectEndpoint(config, flags) {
 		config.delete('selectedApp');
 		config.set('selectedEndpoint', selectedEndpoint);
 		console.log("Selected endpoint: " + cyan(list[selectedEndpoint].endpoint));
-		rl.close();
-	});
+	} catch (error) {
+		if (error.name === 'ExitPromptError') {
+			console.log('\nSelect endpoint cancelled.');
+		} else {
+			throw error;
+		}
+	}
 }
 
 export function parseEndpoint(endpoint) {
