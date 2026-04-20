@@ -146,7 +146,6 @@ export function createAll(input, config, flags = {}) {
 			}
 
 			id = i === 0 && flags.id ? flags.id : json.url || filePath;
-			console.log(green('✔'), 'Creating', yellow(id));
 			var textEncoded = encoder.encode(json.text);
 			//batchSize += textEncoded.length;
 			if (textEncoded.length > MAX_FILE_SIZE) {
