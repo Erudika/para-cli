@@ -26,8 +26,8 @@
     "api"
   ],
   "devDependencies": {
-    "@biomejs/biome": "^2.5.7",
-    "eslint": "^10.8.1",
+    "@biomejs/biome": "^2.5.12",
+    "eslint": "^10.10.0",
     "release-it": "^21.0.2"
   },
   "repository": {
@@ -35,15 +35,15 @@
     "url": "git+https://github.com/Erudika/para-cli.git"
   },
   "dependencies": {
-    "@inquirer/input": "^5.1.2",
-    "@inquirer/password": "^5.1.1",
+    "@inquirer/input": "^5.1.5",
+    "@inquirer/password": "^5.2.1",
     "brace-expansion": "^5.0.9",
     "chalk": "^6.0.0",
     "conf": "^15.1.0",
     "exit": "^0.1.2",
     "figlet": "^1.11.4",
     "get-stdin": "^10.0.0",
-    "globby": "^16.2.3",
+    "globby": "^16.2.4",
     "htmlparser2": "^12.0.0",
     "jsonwebtoken": "^9.0.3",
     "meow": "^14.1.0",
